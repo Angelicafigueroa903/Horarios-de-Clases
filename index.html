@@ -13,6 +13,10 @@
         .sidebar { width: 260px; position: fixed; right: 0; top: 0; height: 100vh; z-index: 50; }
         .content { margin-right: 260px; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
         .module:not(#inicio) { width: 100%; align-self: flex-start; }
+        .schedule-grid { display: grid; grid-template-columns: 100px repeat(5, 1fr); gap: 1px; background-color: #e2e8f0; border: 1px solid #e2e8f0; }
+        .schedule-header { background-color: #0f172a; color: white; padding: 10px; text-align: center; font-weight: bold; font-size: 0.75rem; text-transform: uppercase; }
+        .time-slot { background-color: #f8fafc; padding: 10px; text-align: center; font-weight: bold; font-size: 0.7rem; color: #64748b; }
+        .class-slot { background-color: white; padding: 8px; min-height: 60px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.7rem; border: 1px solid #f1f5f9; }
     </style>
 </head>
 <body class="bg-gray-50 font-sans text-slate-900">
@@ -88,6 +92,83 @@
             </div>
         </div>
 
+        <!-- MÓDULO: ASIGNATURAS -->
+        <div id="asignaturas" class="module max-w-5xl mx-auto"> 
+            <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
+                <div class="flex justify-between items-center mb-8">
+                    <div>
+                        <h2 class="text-2xl font-bold text-slate-800">Módulo de Asignaturas</h2>
+                        <p class="text-xs text-gray-500 italic">Configuración de materias y bloques</p>
+                    </div>
+                    <button onclick="toggleForm('asignatura-form')" class="bg-blue-600 text-white px-4 py-2 rounded-lg font-bold text-sm hover:bg-blue-700 transition-all">
+                        <i class="fas fa-plus mr-2"></i> Agregar Asignatura
+                    </button>
+                </div>
+
+                <div id="asignatura-form" class="hidden bg-slate-50 p-6 rounded-xl mb-8 border border-slate-200">
+                    <h3 class="font-bold mb-4 text-slate-700 text-sm uppercase">Nueva Asignatura</h3>
+                    <div class="grid md:grid-cols-3 gap-4">
+                        <input type="text" id="asig-name" placeholder="Nombre de la Materia" class="p-2 border rounded text-sm">
+                        <select id="asig-block" class="p-2 border rounded text-sm">
+                            <option value="No">¿Requiere Bloque? No</option>
+                            <option value="Si">¿Requiere Bloque? Sí</option>
+                        </select>
+                        <input type="number" id="asig-hours" placeholder="Horas Semanales" class="p-2 border rounded text-sm">
+                        <button onclick="saveAsignatura()" class="bg-green-600 text-white p-2 rounded font-bold text-sm hover:bg-green-700">Guardar</button>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm">
+                        <thead>
+                            <tr class="bg-slate-100 text-slate-500 text-[10px] uppercase tracking-widest border-b">
+                                <th class="p-4">Nombre de Materia</th>
+                                <th class="p-4">Bloque Consecutivo</th>
+                                <th class="p-4 text-center">Horas Semanales</th>
+                                <th class="p-4 text-center">Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody id="asignaturas-table-body" class="divide-y divide-gray-100"></tbody>
+                    </table>
+                </div>
+            </div> 
+        </div>
+
+        <!-- MÓDULO: HORARIOS POR DOCENTE -->
+        <div id="horarios-docente" class="module max-w-6xl mx-auto"> 
+            <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
+                <div class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
+                    <div>
+                        <h2 class="text-2xl font-bold text-slate-800">Horarios por Docente</h2>
+                        <p class="text-xs text-gray-500 italic">Visualización individual de carga académica</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <label class="text-xs font-bold text-slate-600">Seleccionar Docente:</label>
+                        <select id="select-docente-horario" onchange="updateScheduleView()" class="p-2 border rounded-lg text-sm bg-slate-50 outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="">-- Elija un docente --</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="overflow-x-auto">
+                    <div class="schedule-grid" id="schedule-container">
+                        <div class="schedule-header">Hora</div>
+                        <div class="schedule-header">Lunes</div>
+                        <div class="schedule-header">Martes</div>
+                        <div class="schedule-header">Miércoles</div>
+                        <div class="schedule-header">Jueves</div>
+                        <div class="schedule-header">Viernes</div>
+                    </div>
+                </div>
+            </div> 
+        </div>
+
+        <!-- MÓDULO: HORARIOS POR GRADO -->
+        <div id="horarios-grado" class="module max-w-5xl mx-auto"> 
+            <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 text-center py-20">
+                <h2 class="text-2xl font-bold text-slate-400 italic">Horarios por Grado (Próximo Módulo)</h2>
+            </div> 
+        </div>
+
         <!-- MÓDULO: CONFIGURACIÓN -->
         <div id="configuracion" class="module max-w-4xl mx-auto">
             <div class="bg-white p-12 rounded-3xl shadow-sm border border-red-100 text-center">
@@ -100,25 +181,26 @@
             </div>
         </div>
 
-        <!-- OTROS MÓDULOS (Simplificados para este ejemplo) -->
-        <div id="asignaturas" class="module max-w-5xl mx-auto"> <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-100"><h2 class="text-2xl font-bold text-slate-800">Módulo de Asignaturas</h2></div> </div>
-        <div id="horarios-docente" class="module max-w-5xl mx-auto"> <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 text-center py-20"><h2 class="text-2xl font-bold text-slate-400 italic">Horarios Docente</h2></div> </div>
-        <div id="horarios-grado" class="module max-w-5xl mx-auto"> <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 text-center py-20"><h2 class="text-2xl font-bold text-slate-400 italic">Horarios Grado</h2></div> </div>
-
     </main>
 
     <script>
         let docentes = JSON.parse(localStorage.getItem('sanMiguelDocentes')) || [];
+        let asignaturas = JSON.parse(localStorage.getItem('sanMiguelAsignaturas')) || [];
 
         function showModule(id) {
             document.querySelectorAll('.module').forEach(m => m.classList.remove('active'));
             document.getElementById(id).classList.add('active');
             const main = document.querySelector('.content');
             main.style.alignItems = (id === 'inicio' || id === 'configuracion') ? 'center' : 'flex-start';
+            
             if(id === 'docentes') renderDocentes();
+            if(id === 'asignaturas') renderAsignaturas();
+            if(id === 'horarios-docente') { populateDocenteSelect(); generateScheduleGrid(); }
         }
 
-        // --- FUNCIONES DE DOCENTES ---
+        function toggleForm(id) { document.getElementById(id).classList.toggle('hidden'); }
+
+        // --- DOCENTES ---
         function openDocenteForm(index = -1) {
             document.getElementById('docente-form').classList.remove('hidden');
             if(index >= 0) {
@@ -133,29 +215,23 @@
                 document.getElementById('edit-index').value = "-1";
             }
         }
-
         function closeDocenteForm() { document.getElementById('docente-form').classList.add('hidden'); }
-
         function saveDocente() {
             const id = document.getElementById('doc-id').value.trim();
             const name = document.getElementById('doc-name').value.trim();
             const editIndex = parseInt(document.getElementById('edit-index').value);
-
-            if(!id || !name) return alert("Por favor completa los campos.");
-
+            if(!id || !name) return alert("Completa los campos.");
             if(editIndex === -1) {
-                if(docentes.some(d => d.id === id)) return alert("Este documento ya existe.");
+                if(docentes.some(d => d.id === id)) return alert("Documento ya existe.");
                 docentes.push({ id, name, carga: [] });
             } else {
                 docentes[editIndex].id = id;
                 docentes[editIndex].name = name;
             }
-
             localStorage.setItem('sanMiguelDocentes', JSON.stringify(docentes));
             renderDocentes();
             closeDocenteForm();
         }
-
         function addCarga(docIdx) {
             const subject = prompt("Asignatura:");
             const grade = prompt("Grado:");
@@ -166,94 +242,134 @@
                 renderDocentes();
             }
         }
-
         function editCarga(docIdx, cargaIdx) {
             const c = docentes[docIdx].carga[cargaIdx];
             const subject = prompt("Editar Asignatura:", c.subject);
             const grade = prompt("Editar Grado:", c.grade);
             const hours = parseInt(prompt("Editar Horas:", c.hours));
-            
             if(subject && grade && !isNaN(hours)) {
                 docentes[docIdx].carga[cargaIdx] = { subject, grade, hours };
                 localStorage.setItem('sanMiguelDocentes', JSON.stringify(docentes));
                 renderDocentes();
             }
         }
-
         function removeCarga(docIdx, cargaIdx) {
-            if(confirm("¿Eliminar asignatura?")) {
-                docentes[docIdx].carga.splice(cargaIdx, 1);
-                localStorage.setItem('sanMiguelDocentes', JSON.stringify(docentes));
-                renderDocentes();
-            }
+            if(confirm("¿Eliminar?")) { docentes[docIdx].carga.splice(cargaIdx, 1); localStorage.setItem('sanMiguelDocentes', JSON.stringify(docentes)); renderDocentes(); }
         }
-
         function deleteDocente(index) {
-            if(confirm("¿Eliminar permanentemente a este docente?")) {
-                docentes.splice(index, 1);
-                localStorage.setItem('sanMiguelDocentes', JSON.stringify(docentes));
-                renderDocentes();
-            }
+            if(confirm("¿Eliminar?")) { docentes.splice(index, 1); localStorage.setItem('sanMiguelDocentes', JSON.stringify(docentes)); renderDocentes(); }
         }
-
         function renderDocentes() {
             const container = document.getElementById('docentes-list');
             if(!container) return;
             container.innerHTML = docentes.map((d, docIdx) => {
                 const totalH = d.carga.reduce((s, c) => s + c.hours, 0);
                 return `
-                <div class="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+                <div class="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm mb-4">
                     <div class="bg-slate-800 p-4 text-white flex justify-between items-center">
-                        <div>
-                            <span class="text-[10px] text-blue-400 font-bold uppercase tracking-widest">${d.id}</span>
-                            <h4 class="font-bold text-lg">${d.name}</h4>
-                        </div>
+                        <div><span class="text-[10px] text-blue-400 font-bold uppercase">${d.id}</span><h4 class="font-bold text-lg">${d.name}</h4></div>
                         <div class="flex items-center gap-4">
-                            <div class="text-right border-r border-slate-600 pr-4">
-                                <span class="text-[10px] block uppercase text-slate-400">Total Horas</span>
-                                <span class="text-xl font-black text-blue-400">${totalH}</span>
-                            </div>
-                            <button onclick="openDocenteForm(${docIdx})" class="text-slate-400 hover:text-white transition-colors"><i class="fas fa-edit"></i></button>
+                            <div class="text-right border-r border-slate-600 pr-4"><span class="text-[10px] block uppercase text-slate-400">Total Horas</span><span class="text-xl font-black text-blue-400">${totalH}</span></div>
+                            <button onclick="openDocenteForm(${docIdx})" class="text-slate-400 hover:text-white"><i class="fas fa-edit"></i></button>
                         </div>
                     </div>
                     <div class="p-5">
-                        <div class="flex justify-between items-center mb-4">
-                            <h5 class="text-xs font-bold text-slate-500 uppercase">Carga Académica</h5>
-                            <button onclick="addCarga(${docIdx})" class="text-blue-600 hover:text-blue-800 text-xs font-bold"><i class="fas fa-plus-circle mr-1"></i> Asignar Materia</button>
-                        </div>
+                        <div class="flex justify-between items-center mb-4"><h5 class="text-xs font-bold text-slate-500 uppercase">Carga Académica</h5><button onclick="addCarga(${docIdx})" class="text-blue-600 hover:text-blue-800 text-xs font-bold"><i class="fas fa-plus-circle mr-1"></i> Asignar Materia</button></div>
                         <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
                             ${d.carga.map((c, cIdx) => `
-                                <div class="bg-slate-50 p-3 rounded-xl border border-slate-100 flex justify-between items-center group">
-                                    <div>
-                                        <div class="font-bold text-slate-700 text-sm">${c.subject}</div>
-                                        <div class="text-[10px] text-slate-500 font-bold uppercase">${c.grade} | ${c.hours}h</div>
-                                    </div>
+                                <div class="bg-slate-50 p-3 rounded-xl border border-slate-100 flex justify-between items-center">
+                                    <div><div class="font-bold text-slate-700 text-sm">${c.subject}</div><div class="text-[10px] text-slate-500 font-bold uppercase">${c.grade} | ${c.hours}h</div></div>
                                     <div class="flex gap-1">
-                                        <button onclick="editCarga(${docIdx}, ${cIdx})" class="text-slate-300 hover:text-blue-500 p-1 transition-colors"><i class="fas fa-edit text-xs"></i></button>
-                                        <button onclick="removeCarga(${docIdx}, ${cIdx})" class="text-slate-300 hover:text-red-500 p-1 transition-colors"><i class="fas fa-times text-xs"></i></button>
+                                        <button onclick="editCarga(${docIdx}, ${cIdx})" class="text-slate-300 hover:text-blue-500 p-1"><i class="fas fa-edit text-xs"></i></button>
+                                        <button onclick="removeCarga(${docIdx}, ${cIdx})" class="text-slate-300 hover:text-red-500 p-1"><i class="fas fa-times text-xs"></i></button>
                                     </div>
                                 </div>
                             `).join('')}
                         </div>
-                        ${d.carga.length === 0 ? '<p class="text-center text-slate-300 text-xs italic py-4">Sin carga asignada</p>' : ''}
-                        <div class="mt-4 pt-4 border-t border-slate-100 text-right">
-                            <button onclick="deleteDocente(${docIdx})" class="text-red-400 text-[10px] font-bold uppercase hover:text-red-600">Eliminar Docente</button>
-                        </div>
+                        <div class="mt-4 pt-4 border-t border-slate-100 text-right"><button onclick="deleteDocente(${docIdx})" class="text-red-400 text-[10px] font-bold uppercase hover:text-red-600">Eliminar Docente</button></div>
                     </div>
                 </div>`;
             }).join('');
         }
 
+        // --- ASIGNATURAS ---
+        function saveAsignatura() {
+            const asig = { name: document.getElementById('asig-name').value, block: document.getElementById('asig-block').value, hours: document.getElementById('asig-hours').value };
+            if(!asig.name || !asig.hours) return alert("Completa los datos");
+            asignaturas.push(asig);
+            localStorage.setItem('sanMiguelAsignaturas', JSON.stringify(asignaturas));
+            renderAsignaturas();
+            toggleForm('asignatura-form');
+            document.querySelectorAll('#asignatura-form input').forEach(i => i.value = "");
+        }
+        function renderAsignaturas() {
+            const body = document.getElementById('asignaturas-table-body');
+            if(!body) return;
+            body.innerHTML = asignaturas.map((a, index) => `
+                <tr class="hover:bg-gray-50 transition-all border-b">
+                    <td class="p-4 font-bold text-slate-700">${a.name}</td>
+                    <td class="p-4"><span class="${a.block === 'Si' ? 'bg-orange-100 text-orange-700' : 'bg-gray-100 text-gray-600'} px-2 py-1 rounded-full text-[10px] font-bold">${a.block === 'Si' ? 'REQUERIDO' : 'NORMAL'}</span></td>
+                    <td class="p-4 text-center font-bold text-blue-600">${a.hours}</td>
+                    <td class="p-4 text-center"><button onclick="deleteAsignatura(${index})" class="text-red-400 hover:text-red-600"><i class="fas fa-trash"></i></button></td>
+                </tr>
+            `).join('');
+        }
+        function deleteAsignatura(index) {
+            if(confirm("¿Eliminar?")) { asignaturas.splice(index, 1); localStorage.setItem('sanMiguelAsignaturas', JSON.stringify(asignaturas)); renderAsignaturas(); }
+        }
+
+        // --- HORARIOS POR DOCENTE ---
+        function populateDocenteSelect() {
+            const select = document.getElementById('select-docente-horario');
+            select.innerHTML = '<option value="">-- Elija un docente --</option>' + docentes.map(d => `<option value="${d.id}">${d.name}</option>`).join('');
+        }
+        function generateScheduleGrid() {
+            const container = document.getElementById('schedule-container');
+            const headers = Array.from(container.children).slice(0, 6);
+            container.innerHTML = '';
+            headers.forEach(h => container.appendChild(h));
+            const times = ["07:00 - 08:00", "08:00 - 09:00", "09:00 - 10:00", "10:00 - 10:30 (D)", "10:30 - 11:30", "11:30 - 12:30", "12:30 - 13:30"];
+            times.forEach(time => {
+                const timeCell = document.createElement('div');
+                timeCell.className = 'time-slot';
+                timeCell.innerText = time;
+                container.appendChild(timeCell);
+                for (let i = 0; i < 5; i++) {
+                    const classCell = document.createElement('div');
+                    classCell.className = 'class-slot';
+                    if (time.includes("(D)")) {
+                        classCell.style.backgroundColor = "#f1f5f9";
+                        classCell.innerHTML = '<span class="text-slate-400 font-bold uppercase tracking-widest" style="font-size: 0.5rem">Descanso</span>';
+                    }
+                    container.appendChild(classCell);
+                }
+            });
+        }
+        function updateScheduleView() {
+            const docId = document.getElementById('select-docente-horario').value;
+            const doc = docentes.find(d => d.id === docId);
+            document.querySelectorAll('.class-slot').forEach(slot => { if (!slot.innerText.includes("Descanso")) slot.innerHTML = ''; });
+            if (doc && doc.carga.length > 0) {
+                const allSlots = Array.from(document.querySelectorAll('.class-slot'));
+                allSlots.forEach((slot, index) => {
+                    if (index % 7 === 1 && !slot.innerHTML.includes("Descanso")) {
+                        slot.innerHTML = `<div class="font-bold text-blue-700">${doc.carga[0].subject}</div><div class="text-[0.6rem] text-slate-500 mt-1 font-semibold">${doc.carga[0].grade}</div>`;
+                    }
+                });
+            }
+        }
+
+        // --- SISTEMA ---
         function resetSystem() {
             if(confirm("¡ATENCIÓN! Esto borrará absolutamente TODO. ¿Estás seguro?")) {
                 localStorage.clear();
-                docentes = [];
+                docentes = []; asignaturas = [];
                 alert("Sistema restablecido.");
                 location.reload();
             }
         }
 
-        window.onload = () => { renderDocentes(); };
+        window.onload = () => { renderDocentes(); renderAsignaturas(); };
     </script>
 </body>
 </html>
