@@ -8,71 +8,69 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         .module { display: none; }
-        .module.active { display: block; animation: fadeIn 0.5s; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px ); } to { opacity: 1; transform: translateY(0); } }
-        .sidebar { width: 280px; position: fixed; right: 0; top: 0; height: 100vh; }
-        .content { margin-right: 280px; min-height: 100vh; }
+        .module.active { display: block; animation: fadeIn 0.4s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px ); } to { opacity: 1; transform: translateY(0); } }
+        .sidebar { width: 260px; position: fixed; right: 0; top: 0; height: 100vh; z-index: 50; }
+        .content { margin-right: 260px; min-height: 100vh; }
     </style>
 </head>
-<body class="bg-gray-100 font-sans">
+<body class="bg-gray-50 font-sans text-slate-900">
 
-    <!-- MENÚ LATERAL DERECHO (ESTRUCTURA ORIGINAL) -->
+    <!-- MENÚ LATERAL DERECHO -->
     <nav class="sidebar bg-slate-900 text-white p-6 shadow-2xl flex flex-col">
-        <div class="text-center mb-10">
-            <div class="w-24 h-24 bg-white rounded-full mx-auto mb-4 flex items-center justify-center border-4 border-blue-500 shadow-lg overflow-hidden">
-                <i class="fas fa-school text-slate-800 text-4xl"></i>
+        <div class="text-center mb-8">
+            <div id="mini-logo-container" class="w-16 h-16 bg-white rounded-full mx-auto mb-3 flex items-center justify-center border-2 border-blue-500 shadow-lg overflow-hidden">
+                <img id="mini-logo-preview" src="" class="hidden w-full h-full object-cover">
+                <i id="mini-logo-icon" class="fas fa-school text-slate-800 text-2xl"></i>
             </div>
-            <h1 class="text-sm font-bold text-blue-400 tracking-widest uppercase">IE San Miguel</h1>
-            <p class="text-[10px] text-gray-400 mt-1">SISTEMA DE HORARIOS</p>
+            <h1 class="text-[10px] font-bold text-blue-400 tracking-widest uppercase">IE San Miguel</h1>
         </div>
 
-        <div class="space-y-3">
-            <button onclick="showModule('inicio')" class="w-full flex items-center p-3 rounded-xl hover:bg-blue-600 transition-all group">
-                <i class="fas fa-home w-8"></i> Inicio
+        <div class="space-y-2">
+            <button onclick="showModule('inicio')" class="w-full flex items-center p-3 rounded-lg hover:bg-blue-600 transition-all text-sm group">
+                <i class="fas fa-home w-6"></i> Inicio
             </button>
-            <button onclick="showModule('docentes')" class="w-full flex items-center p-3 rounded-xl hover:bg-blue-600 transition-all group">
-                <i class="fas fa-user-tie w-8"></i> Docentes
+            <button onclick="showModule('docentes')" class="w-full flex items-center p-3 rounded-lg hover:bg-blue-600 transition-all text-sm group">
+                <i class="fas fa-user-tie w-6"></i> Docentes
             </button>
-            <button onclick="showModule('asignaturas')" class="w-full flex items-center p-3 rounded-xl hover:bg-blue-600 transition-all group">
-                <i class="fas fa-book w-8"></i> Asignaturas
+            <button onclick="showModule('asignaturas')" class="w-full flex items-center p-3 rounded-lg hover:bg-blue-600 transition-all text-sm group">
+                <i class="fas fa-book w-6"></i> Asignaturas
             </button>
-            <button onclick="showModule('horarios-docente')" class="w-full flex items-center p-3 rounded-xl hover:bg-blue-600 transition-all group">
-                <i class="fas fa-calendar-alt w-8"></i> Horarios por Docente
+            <button onclick="showModule('horarios-docente')" class="w-full flex items-center p-3 rounded-lg hover:bg-blue-600 transition-all text-sm group">
+                <i class="fas fa-calendar-alt w-6"></i> Horarios Docente
             </button>
-            <button onclick="showModule('horarios-grado')" class="w-full flex items-center p-3 rounded-xl hover:bg-blue-600 transition-all group">
-                <i class="fas fa-users w-8"></i> Horarios por Grado
+            <button onclick="showModule('horarios-grado')" class="w-full flex items-center p-3 rounded-lg hover:bg-blue-600 transition-all text-sm group">
+                <i class="fas fa-users w-6"></i> Horarios Grado
             </button>
         </div>
     </nav>
 
-    <!-- CONTENIDO (ESTRUCTURA ORIGINAL) -->
+    <!-- CONTENIDO PRINCIPAL -->
     <main class="content p-8">
         
-        <!-- MÓDULO: INICIO (CON LOS CAMBIOS SOLICITADOS) -->
+        <!-- MÓDULO: INICIO -->
         <div id="inicio" class="module active">
-            <div class="bg-white p-12 rounded-3xl shadow-sm border border-gray-200 text-center max-w-4xl mx-auto mt-10">
-                <h2 class="text-6xl font-black text-slate-800 mb-2">¡Bienvenidos al sistema de horarios!</h2>
-                <!-- Letra más bonita para el nombre del colegio -->
-                <h3 class="text-5xl font-extrabold text-blue-600 italic mb-12">Institución Educativa San Miguel</h3>
+            <div class="max-w-3xl mx-auto text-center mt-12">
+                <h2 class="text-4xl font-black text-slate-800 mb-2 tracking-tight">¡Bienvenidos al sistema de horarios!</h2>
+                <h3 class="text-3xl font-bold text-blue-600 italic mb-12">Institución Educativa San Miguel</h3>
                 
-                <!-- Logo central con botón de subir/cambiar -->
-                <div class="flex flex-col items-center justify-center space-y-6">
-                    <div id="logo-container" class="w-64 h-64 bg-slate-50 rounded-full border-4 border-dashed border-gray-200 flex items-center justify-center overflow-hidden relative">
-                        <img id="logo-preview" src="" class="hidden w-full h-full object-contain p-4">
-                        <div id="logo-placeholder" class="text-gray-300 flex flex-col items-center">
-                            <i class="fas fa-image text-7xl mb-2"></i>
-                            <p class="text-xs font-bold uppercase">Logo Institucional</p>
+                <div class="relative inline-block">
+                    <div id="main-logo-container" class="w-64 h-64 bg-white rounded-3xl border-2 border-dashed border-slate-200 flex items-center justify-center overflow-hidden shadow-xl hover:border-blue-400 transition-all">
+                        <img id="main-logo-preview" src="" class="hidden w-full h-full object-contain p-4">
+                        <div id="main-logo-placeholder" class="text-slate-300 flex flex-col items-center">
+                            <i class="fas fa-image text-6xl mb-3"></i>
+                            <p class="text-[10px] font-bold uppercase tracking-widest">Logo Institucional</p>
                         </div>
                     </div>
 
-                    <div class="flex space-x-4">
-                        <label for="logo-upload" class="cursor-pointer bg-blue-600 text-white px-8 py-3 rounded-full font-bold hover:bg-blue-700 shadow-lg flex items-center">
-                            <i class="fas fa-upload mr-2"></i> Subir Logo
+                    <div class="mt-8 flex justify-center space-x-3">
+                        <label for="logo-input" class="cursor-pointer bg-blue-600 text-white px-6 py-3 rounded-xl font-bold text-sm uppercase tracking-wider hover:bg-blue-700 shadow-lg transition-all flex items-center">
+                            <i class="fas fa-plus-circle mr-2"></i> Agregar Logo
                         </label>
-                        <input type="file" id="logo-upload" class="hidden" accept="image/*" onchange="previewLogo(event)">
+                        <input type="file" id="logo-input" class="hidden" accept="image/*" onchange="handleImage(this)">
                         
-                        <button onclick="removeLogo()" id="btn-remove-logo" class="hidden bg-gray-100 text-gray-600 px-6 py-3 rounded-full font-bold hover:bg-gray-200 transition-all flex items-center border">
-                            <i class="fas fa-sync-alt mr-2"></i> Cambiar
+                        <button onclick="triggerEdit()" id="btn-edit" class="hidden bg-white text-slate-700 px-6 py-3 rounded-xl font-bold text-sm uppercase tracking-wider hover:bg-slate-50 shadow shadow-slate-200 transition-all flex items-center border border-slate-200">
+                            <i class="fas fa-edit mr-2 text-blue-500"></i> Editar
                         </button>
                     </div>
                 </div>
@@ -81,43 +79,68 @@
 
         <!-- MÓDULO: DOCENTES -->
         <div id="docentes" class="module">
-            <div class="bg-white p-8 rounded-3xl shadow-sm border border-gray-200">
-                <h2 class="text-3xl font-bold text-slate-800 mb-6">Módulo de Docentes</h2>
-                <p class="text-gray-500 italic">Contenido del módulo de docentes...</p>
+            <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
+                <h2 class="text-2xl font-bold text-slate-800 mb-6">Módulo de Docentes</h2>
+                <div class="h-48 bg-slate-50 rounded-xl border border-dashed border-slate-200 flex items-center justify-center text-slate-400 text-sm italic">
+                    Configurando tabla de docentes...
+                </div>
             </div>
         </div>
 
-        <!-- RESTO DE MÓDULOS (IGUAL QUE ANTES) -->
-        <div id="asignaturas" class="module"> <div class="bg-white p-8 rounded-3xl shadow-sm border border-gray-200"><h2 class="text-3xl font-bold text-slate-800">Módulo de Asignaturas</h2></div> </div>
-        <div id="horarios-docente" class="module"> <div class="bg-white p-8 rounded-3xl shadow-sm border border-gray-200"><h2 class="text-3xl font-bold text-slate-800">Horarios por Docente</h2></div> </div>
-        <div id="horarios-grado" class="module"> <div class="bg-white p-8 rounded-3xl shadow-sm border border-gray-200"><h2 class="text-3xl font-bold text-slate-800">Horarios por Grado</h2></div> </div>
+        <!-- OTROS MÓDULOS -->
+        <div id="asignaturas" class="module"> <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-100"><h2 class="text-2xl font-bold text-slate-800">Módulo de Asignaturas</h2></div> </div>
+        <div id="horarios-docente" class="module"> <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-100"><h2 class="text-2xl font-bold text-slate-800">Horarios por Docente</h2></div> </div>
+        <div id="horarios-grado" class="module"> <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-100"><h2 class="text-2xl font-bold text-slate-800">Horarios por Grado</h2></div> </div>
 
     </main>
 
     <script>
-        function showModule(moduleId) {
-            const modules = document.querySelectorAll('.module');
-            modules.forEach(m => m.classList.remove('active'));
-            document.getElementById(moduleId).classList.add('active');
+        function showModule(id) {
+            document.querySelectorAll('.module').forEach(m => m.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
         }
 
-        function previewLogo(event) {
-            const reader = new FileReader();
-            reader.onload = function() {
-                const output = document.getElementById('logo-preview');
-                const placeholder = document.getElementById('logo-placeholder');
-                const btnRemove = document.getElementById('btn-remove-logo');
-                output.src = reader.result;
-                output.classList.remove('hidden');
-                placeholder.classList.add('hidden');
-                btnRemove.classList.remove('hidden');
-            };
-            reader.readAsDataURL(event.target.files[0]);
+        function handleImage(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const imageData = e.target.result;
+                    applyLogo(imageData);
+                    localStorage.setItem('sanMiguelLogo', imageData);
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
         }
 
-        function removeLogo() {
-            document.getElementById('logo-upload').click();
+        function applyLogo(data) {
+            const mainPreview = document.getElementById('main-logo-preview');
+            const mainPlaceholder = document.getElementById('main-logo-placeholder');
+            const miniPreview = document.getElementById('mini-logo-preview');
+            const miniIcon = document.getElementById('mini-logo-icon');
+            const btnEdit = document.getElementById('btn-edit');
+
+            if (data) {
+                mainPreview.src = data;
+                mainPreview.classList.remove('hidden');
+                mainPlaceholder.classList.add('hidden');
+                miniPreview.src = data;
+                miniPreview.classList.remove('hidden');
+                miniIcon.classList.add('hidden');
+                btnEdit.classList.remove('hidden');
+            }
         }
+
+        function triggerEdit() {
+            document.getElementById('logo-input').click();
+        }
+
+        // Cargar logo al iniciar la página
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedLogo = localStorage.getItem('sanMiguelLogo');
+            if (savedLogo) {
+                applyLogo(savedLogo);
+            }
+        });
     </script>
 </body>
 </html>
