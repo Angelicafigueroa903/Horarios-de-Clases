@@ -1,168 +1,60 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>IE San Miguel - Gestión de Horarios</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link
-        rel="stylesheet"
-        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
-    />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <!-- Librerías para PDF -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf..min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
     <style>
-        .module {
-            display: none;
-        }
-        .module.active {
-            display: block;
-            animation: fadeIn 0.4s ease-out;
-        }
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(5px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-        .sidebar {
-            width: 260px;
-            position: fixed;
-            right: 0;
-            top: 0;
-            height: 100vh;
-            z-index: 50;
-        }
-        .content {
-            margin-right: 260px;
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .module:not(#inicio) {
-            width: 100%;
-            align-self: flex-start;
-        }
-        .schedule-grid {
-            display: grid;
-            /* 1 columna hora + 5 días = 6 columnas */
-            grid-template-columns: 120px repeat(5, 1fr);
-            gap: 1px;
-            background-color: #e2e8f0;
-            border: 1px solid #e2e8f0;
-        }
-        .schedule-header {
-            background-color: #0f172a;
-            color: white;
-            padding: 12px;
-            text-align: center;
-            font-weight: bold;
-            font-size: 0.75rem;
-            text-transform: uppercase;
-        }
-        .time-slot {
-            background-color: #f8fafc;
-            padding: 12px;
-            text-align: center;
-            font-weight: bold;
-            font-size: 0.65rem;
-            color: #475569;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .class-slot {
-            background-color: white;
-            padding: 6px;
-            min-height: 70px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.7rem;
-            border: 1px solid #f1f5f9;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-        .class-slot:hover:not(.break) {
-            background-color: #f0f9ff;
-        }
-        .break {
-            background-color: #f1f5f9 !important;
-            color: #94a3b8;
-            font-weight: bold;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-            font-size: 0.6rem;
-            /* Para que ocupe el espacio correcto */
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
+        .module { display: none; }
+        .module.active { display: block; animation: fadeIn 0.4s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px ); } to { opacity: 1; transform: translateY(0); } }
+        .sidebar { width: 260px; position: fixed; right: 0; top: 0; height: 100vh; z-index: 50; }
+        .content { margin-right: 260px; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+        .module:not(#inicio) { width: 100%; align-self: flex-start; }
+        .schedule-grid { display: grid; grid-template-columns: 120px repeat(5, 1fr); gap: 1px; background-color: #e2e8f0; border: 1px solid #e2e8f0; }
+        .schedule-header { background-color: #0f172a; color: white; padding: 12px; text-align: center; font-weight: bold; font-size: 0.75rem; text-transform: uppercase; }
+        .time-slot { background-color: #f8fafc; padding: 12px; text-align: center; font-weight: bold; font-size: 0.65rem; color: #475569; display: flex; align-items: center; justify-content: center; }
+        .class-slot { background-color: white; padding: 6px; min-height: 70px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.7rem; border: 1px solid #f1f5f9; cursor: pointer; transition: background 0.2s; }
+        .class-slot:hover:not(.break) { background-color: #f0f9ff; }
+        .break { background-color: #f1f5f9 !important; color: #94a3b8; font-weight: bold; text-transform: uppercase; letter-spacing: 0.1em; font-size: 0.6rem; }
     </style>
 </head>
 <body class="bg-gray-50 font-sans text-slate-900">
+
     <!-- MENÚ LATERAL DERECHO -->
-    <nav
-        class="sidebar bg-slate-900 text-white p-6 shadow-2xl flex flex-col"
-    >
+    <nav class="sidebar bg-slate-900 text-white p-6 shadow-2xl flex flex-col">
         <div class="text-center mb-8">
-            <div
-                class="w-16 h-16 bg-blue-600 rounded-full mx-auto mb-3 flex items-center justify-center shadow-lg"
-            >
+            <div class="w-16 h-16 bg-blue-600 rounded-full mx-auto mb-3 flex items-center justify-center shadow-lg">
                 <i class="fas fa-school text-white text-2xl"></i>
             </div>
-            <h1
-                class="text-[10px] font-bold text-blue-400 tracking-widest uppercase"
-            >
-                IE San Miguel
-            </h1>
+            <h1 class="text-[10px] font-bold text-blue-400 tracking-widest uppercase">IE San Miguel</h1>
         </div>
 
         <div class="space-y-2 flex-grow">
-            <button
-                onclick="showModule('inicio')"
-                class="w-full flex items-center p-3 rounded-lg hover:bg-blue-600 transition-all text-sm group"
-            >
+            <button onclick="showModule('inicio')" class="w-full flex items-center p-3 rounded-lg hover:bg-blue-600 transition-all text-sm group">
                 <i class="fas fa-home w-6"></i> Inicio
             </button>
-            <button
-                onclick="showModule('docentes')"
-                class="w-full flex items-center p-3 rounded-lg hover:bg-blue-600 transition-all text-sm group"
-            >
+            <button onclick="showModule('docentes')" class="w-full flex items-center p-3 rounded-lg hover:bg-blue-600 transition-all text-sm group">
                 <i class="fas fa-user-tie w-6"></i> Docentes
             </button>
-            <button
-                onclick="showModule('asignaturas')"
-                class="w-full flex items-center p-3 rounded-lg hover:bg-blue-600 transition-all text-sm group"
-            >
+            <button onclick="showModule('asignaturas')" class="w-full flex items-center p-3 rounded-lg hover:bg-blue-600 transition-all text-sm group">
                 <i class="fas fa-book w-6"></i> Asignaturas
             </button>
-            <button
-                onclick="showModule('horarios-docente')"
-                class="w-full flex items-center p-3 rounded-lg hover:bg-blue-600 transition-all text-sm group"
-            >
+            <button onclick="showModule('horarios-docente')" class="w-full flex items-center p-3 rounded-lg hover:bg-blue-600 transition-all text-sm group">
                 <i class="fas fa-calendar-alt w-6"></i> Horarios Docente
             </button>
-            <button
-                onclick="showModule('horarios-grado"
-                class="w-full flex items-center p-3 rounded-lg hover:bg-blue-600 transition-all text-sm group"
-            >
+            <button onclick="showModule('horarios-grado')" class="w-full flex items-center p-3 rounded-lg hover:bg-blue-600 transition-all text-sm group">
                 <i class="fas fa-users w-6"></i> Horarios Grado
             </button>
         </div>
 
         <div class="mt-auto pt-4 border-t border-slate-700">
-            <button
-                onclick="showModule('configuracion')"
-                class="w-full flex items-center p-3 rounded-lg hover:bg-red-600 transition-all text-sm group text-red-400"
-            >
+            <button onclick="showModule('configuracion')" class="w-full flex items-center p-3 rounded-lg hover:bg-red-600 transition-all text-sm group text-red-400">
                 <i class="fas fa-cog w-6"></i> Configuración
             </button>
         </div>
@@ -170,72 +62,32 @@
 
     <!-- CONTENIDO PRINCIPAL -->
     <main class="content p-8">
+        
         <!-- MÓDULO: INICIO -->
         <div id="inicio" class="module active w-full text-center">
-            <h2
-                class="text-4xl font-black text-slate-800 mb-4 tracking-tight"
-            >
-                ¡Bienvenidos al sistema de horarios!
-            </h2>
-            <h3 class="text-3xl font-bold text-blue-600 italic mb-6">
-                Institución Educativa San Miguel
-            </h3>
+            <h2 class="text-4xl font-black text-slate-800 mb-4 tracking-tight">¡Bienvenidos al sistema de horarios!</h2>
+            <h3 class="text-3xl font-bold text-blue-600 italic mb-6">Institución Educativa San Miguel</h3>
             <div class="w-24 h-1 bg-blue-500 mx-auto rounded-full"></div>
         </div>
 
         <!-- MÓDULO: DOCENTES -->
         <div id="docentes" class="module max-w-6xl mx-auto">
-            <div
-                class="bg-white p-8 rounded-2xl shadow-sm border border-gray-100"
-            >
-                <div
- class="flex justify-between items-center mb-8"
-                >
+            <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
+                <div class="flex justify-between items-center mb-8">
                     <h2 class="text-2xl font-bold text-slate-800">Módulo de Docentes</h2>
-                    <button
-                        onclick="openDocenteForm()"
-                       ="bg-blue-600 text-white px-4 py-2 rounded-lg font-bold text-sm hover:bg-blue-700"
-                    >
+                    <button onclick="openDocenteForm()" class="bg-blue-600 text-white px-4 py-2 rounded-lg font-bold text-sm hover:bg-blue-700">
                         <i class="fas fa-plus mr-2"></i> Nuevo Docente
                     </button>
                 </div>
-                <div
-                    id="docente-form"
-                    class="hidden bg-slate-50 p-6 rounded-xl mb-8 border border-slate-200"
-                >
-                    <h3
-                        id="form-title"
-                        class="font-bold mb-4 text-slate-700 text-sm uppercase"
-                    >
-                        Registro de Docente
-                    </h3>
-                    <input type="hidden" id="edit-index" value="-1" />
+                <div id="docente-form" class="hidden bg-slate-50 p-6 rounded-xl mb-8 border border-slate-200">
+                    <h3 id="form-title" class="font-bold mb-4 text-slate-700 text-sm uppercase">Registro de Docente</h3>
+                    <input type="hidden" id="edit-index" value="-1">
                     <div class="grid md:grid-cols-3 gap-4">
-                        <input
-                            type="text"
-                            id="doc-id"
-                            placeholder="N° Documento"
-                            class="p-2 border rounded text-sm"
-                        />
-                        <input
-                            type="text"
-                            id="doc-name"
-                            placeholder="Nombre Completo"
-                            class="p-2 border rounded text-sm"
-                        />
+                        <input type="text" id="doc-id" placeholder="N° Documento" class="p-2 border rounded text-sm">
+                        <input type="text" id="doc-name" placeholder="Nombre Completo" class="p-2 border rounded text-sm">
                         <div class="flex gap-2">
-                            <button
-                                onclick="saveDocente()"
-                                class="bg-green-600 text-white p-2 rounded font-bold text-sm hover:bg-green-700 flex-grow"
-                            >
-                                Guardar
-                            </button>
-                            <button
-                                onclick="closeDocenteForm()"
-                                class="bg-gray-400 text-white p-2 rounded font-bold text-sm hover:bg-gray-500"
-                            >
-                                Cancelar
-                            </button>
+                            <button onclick="saveDocente()" class="bg-green-600 text-white p-2 rounded font-bold text-sm hover:bg-green-700 flex-grow">Guardar</button>
+                            <button onclick="closeDocenteForm()" class="bg-gray-400 text-white p-2 rounded font-bold text-sm hover:bg-gray-500">Cancelar</button>
                         </div>
                     </div>
                 </div>
@@ -244,89 +96,40 @@
         </div>
 
         <!-- MÓDULO: ASIGNATURAS -->
-        <div id="asignaturas" class="module max-w-5xl mx-auto">
-            <div
-                class="bg-white p-8 rounded-2xl shadow-sm border border-gray-100"
-            >
-                <div
-                    class="flex justify-between items-center mb-8"
-                >
+        <div id="asignaturas" class="module max-w-5xl mx-auto"> 
+            <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
+                <div class="flex justify-between items-center mb-8">
                     <div>
-                        <h2 class="text-2xl font-bold text-slate-800">
-                            Módulo de Asignaturas
-                        </h2>
-                        <p class="text-xs text-gray-500 italic">
-                            Plan de estudios por grado
-                        </p>
+                        <h2 class="text-2xl font-bold text-slate-800">Módulo de Asignaturas</h2>
+                        <p class="text-xs text-gray-500 italic">Plan de estudios por grado</p>
                     </div>
-                    <button
-                        onclick="openAsignaturaForm()"
-                        class="bg-blue-600 text-white px-4 py-2 rounded-lg font-bold text-sm hover:bg-blue-700 transition-all"
-                    >
+                    <button onclick="openAsignaturaForm()" class="bg-blue-600 text-white px-4 py-2 rounded-lg font-bold text-sm hover:bg-blue-700 transition-all">
                         <i class="fas fa-plus mr-2"></i> Agregar Asignatura
                     </button>
                 </div>
 
-                <div
-                    id="asignatura-form"
-                    class="hidden bg-slate-50 p-6 rounded-xl mb-8 border border-slate-200"
-                >
-                    <h3
-                        id="asig-form-title"
-                        class="font-bold mb-4 text-slate-700 text-sm uppercase"
-                    >
-                        Nueva Asignatura
-                    </h3>
-                    <input type="hidden" id="asig-edit-index" value="-1" />
+                <div id="asignatura-form" class="hidden bg-slate-50 p-6 rounded-xl mb-8 border border-slate-200">
+                    <h3 id="asig-form-title" class="font-bold mb-4 text-slate-700 text-sm uppercase">Nueva Asignatura</h3>
+                    <input type="hidden" id="asig-edit-index" value="-1">
                     <div class="grid md:grid-cols-4 gap-4">
-                        <input
-                            type="text"
-                            id="asig-name"
-                            placeholder="Asignatura"
-                            class="p-2 border rounded text-sm"
-                        />
-                        <input
-                            type="text"
-                            id="asig-grade"
-                            placeholder="Grado"
-                            class="p-2 border rounded text-sm"
-                        />
-                        <select
-                            id="asig-block"
-                            class="p-2 border rounded text-sm"
-                        >
+                        <input type="text" id="asig-name" placeholder="Asignatura" class="p-2 border rounded text-sm">
+                        <input type="text" id="asig-grade" placeholder="Grado" class="p-2 border rounded text-sm">
+                        <select id="asig-block" class="p-2 border rounded text-sm">
                             <option value="No">¿Bloque? No</option>
                             <option value="Si">¿Bloque? Sí</option>
                         </select>
-                        <input
-                            type="number"
-                            id="asig-hours"
-                            placeholder="Horas/Sem"
-                            class="p-2 border rounded text-sm"
-                        />
+                        <input type="number" id="asig-hours" placeholder="Horas/Sem" class="p-2 border rounded text-sm">
                     </div>
                     <div class="flex gap-2 mt-4">
-                        <button
-                            onclick="saveAsignatura()"
-                            class="bg-green-600 text-white p-2 rounded font-bold text-sm hover:bg-green-700 flex-grow"
-                        >
-                            Guardar
-                        </button>
-                        <button
-                            onclick="closeAsignaturaForm()"
-                            class="bg-gray-400 text-white p-2 rounded font-bold text-sm hover:bg-gray-500"
-                        >
-                            Cancelar
-                        </button>
+                        <button onclick="saveAsignatura()" class="bg-green-600 text-white p-2 rounded font-bold text-sm hover:bg-green-700 flex-grow">Guardar</button>
+                        <button onclick="closeAsignaturaForm()" class="bg-gray-400 text-white p-2 rounded font-bold text-sm hover:bg-gray-500">Cancelar</button>
                     </div>
                 </div>
 
                 <div class="overflow-x-auto">
                     <table class="w-full text-left text-sm">
-                       thead>
-                            <tr
-                                class="bg-slate-100 text-slate-500 text-[10px] uppercase tracking-widest border-b"
-                            >
+                        <thead>
+                            <tr class="bg-slate-100 text-slate-500 text-[10px] uppercase tracking-widest border-b">
                                 <th class="p-4">Materia</th>
                                 <th class="p-4">Grado</th>
                                 <th class="p-4">Bloque</th>
@@ -334,51 +137,31 @@
                                 <th class="p-4 text-center">Acción</th>
                             </tr>
                         </thead>
-                        <tbody
-                            id="asignaturas-table-body"
-                            class="divide-y divide-gray-100"
-                        ></tbody>
+                        <tbody id="asignaturas-table-body" class="divide-y divide-gray-100"></tbody>
                     </table>
                 </div>
-            </div>
+            </div> 
         </div>
 
         <!-- MÓDULO: HORARIOS POR DOCENTE -->
-        <div id="horarios-docente" class="module max-w-6xl mx-auto">
-            <div
-                class="bg-white p-8 rounded-2xl shadow-sm border border-gray-100"
-            >
-                <div
-                    class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4"
-                >
+        <div id="horarios-docente" class="module max-w-6xl mx-auto"> 
+            <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
+                <div class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
                     <div>
-                        <h2 class="text-2xl font-bold text-slate-800">
-                            Horarios por Docente
-                        </h2>
-                        <p class="text-xs text-gray-500 italic">
-                            Gestión de tiempos y descarga
-                        </p>
+                        <h2 class="text-2xl font-bold text-slate-800">Horarios por Docente</h2>
+                        <p class="text-xs text-gray-500 italic">Gestión de tiempos y descarga</p>
                     </div>
                     <div class="flex items-center gap-3">
-                        <select
-                            id="select-docente-horario"
-                            class="p-2 border rounded-lg text-sm bg-slate-50 outline-none"
-                        >
+                        <select id="select-docente-horario" onchange="updateScheduleView()" class="p-2 border rounded-lg text-sm bg-slate-50 outline-none">
                             <option value="">-- Seleccionar Docente --</option>
                         </select>
-                        <button
-                            onclick="downloadPDF()"
-                            class="bg-red-600 text-white px-4 py-2 rounded-lg font-bold text-sm hover:bg-red-700 shadow-md"
-                        >
+                        <button onclick="downloadPDF()" class="bg-red-600 text-white px-4 py-2 rounded-lg font-bold text-sm hover:bg-red-700 shadow-md">
                             <i class="fas fa-file-pdf mr-2"></i> Descargar PDF
                         </button>
                     </div>
                 </div>
                 <div class="overflow-x-auto">
-                    <div
-                        class="schedule-grid"
-                        id="schedule-container"
-                    >
+                    <div class="schedule-grid" id="schedule-container">
                         <div class="schedule-header">Hora</div>
                         <div class="schedule-header">Lunes</div>
                         <div class="schedule-header">Martes</div>
@@ -387,55 +170,34 @@
                         <div class="schedule-header">Viernes</div>
                     </div>
                 </div>
-            </div>
+            </div> 
         </div>
 
         <!-- MÓDULO: HORARIOS POR GRADO -->
-        <div
-            id="horarios-grado"
-            class="module max-w-5xl mx-auto"
-        >
-            <div
-                class="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 text-center py-20"
-            >
-                <h2
-                    class="text-2xl font-bold text-slate-400 italic"
-                >
-                    Horarios por Grado (En Desarrollo)
-                </h2>
-            </div>
+        <div id="horarios-grado" class="module max-w-5xl mx-auto"> 
+            <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 text-center py-20">
+                <h2 class="text-2xl font-bold text-slate-400 italic">Horarios por Grado (En Desarrollo)</h2>
+            </div> 
         </div>
 
         <!-- MÓDULO: CONFIGURACIÓN -->
-        <div
-            id="uracion"
-            class="module max-w-4xl mx-auto"
-        >
-            <div
-                class="bg-white p-12 rounded-3xl shadow-sm border border-red-100 text-center"
-            >
-                <i
-                    class="fas fa-exclamation-triangle text-6xl text-red-500 mb-6"
-                ></i>
-                <h2 class="text-xl font-bold-slate-800 mb-4">
-                    Zona de Peligro
-                </h2>
-                <button
-                    onclick="resetSystem()"
-                    class="bg-red-600 text-white px-10 py-4 rounded-2xl font-black text-lg hover:bg-red-700 shadow-xl"
-                >
+        <div id="configuracion" class="module max-w-4xl mx-auto">
+            <div class="bg-white p-12 rounded-3xl shadow-sm border border-red-100 text-center">
+                <i class="fas fa-exclamation-triangle text-6xl text-red-500 mb-6"></i>
+                <h2 class="text-3xl font-bold text-slate-800 mb-4">Zona de Peligro</h2>
+                <button onclick="resetSystem()" class="bg-red-600 text-white px-10 py-4 rounded-2xl font-black text-lg hover:bg-red-700 shadow-xl">
                     RESTABLECER DE FÁBRICA
                 </button>
             </div>
         </div>
+
     </main>
 
     <script>
         // --- DATOS ---
-        let docentes = JSON.parse(localStorage.getItem("sanMiguelDocentes")) || [];
-        let asignaturas =
-            JSON.parse(localStorage.getItem("sanMiguelAsignaturas")) || [];
-        let schedules = JSON.parse(localStorage.getItem("sanMiguelSchedules")) || {};
+        let docentes = JSON.parse(localStorage.getItem('sanMiguelDocentes')) || [];
+        let asignaturas = JSON.parse(localStorage.getItem('sanMiguelAsignaturas')) || [];
+        let schedules = JSON.parse(localStorage.getItem('sanMiguelSchedules')) || {};
 
         const timeSlots = [
             "07:00 - 07:55",
@@ -444,61 +206,48 @@
             "09:45 - 10:15 (R)",
             "10:15 - 11:10",
             "11:10 - 12:05",
-            "12:05 - 13:00",
+            "12:05 - 13:00"
         ];
 
         function showModule(id) {
-            document.querySelectorAll(".module").forEach((m) =>
-                m.classList.remove("active")
-            );
-            document.getElementById(id).classList.add("active");
-            const main = document.querySelector(".content");
-            main.style.alignItems =
-                id === "inicio" || id === "configuracion"
-                    ? "center"
-                    : "flex-start";
-
-            if (id === "docentes") renderDocentes();
-            if (id === "asignaturas") renderAsignaturas();
-            if (id === "horarios-docente") {
-                populateDocenteSelect();
-                updateScheduleView();
-            }
+            document.querySelectorAll('.module').forEach(m => m.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            const main = document.querySelector('.content');
+            main.style.alignItems = (id === 'inicio' || id === 'configuracion') ? 'center' : 'flex-start';
+            if(id === 'docentes') renderDocentes();
+            if(id === 'asignaturas') renderAsignaturas();
+            if(id === 'horarios-docente') { populateDocenteSelect(); generateScheduleGrid(); }
         }
 
         // --- DOCENTES ---
         function openDocenteForm(index = -1) {
-            document.getElementById("docente-form").classList.remove("hidden");
-            if (index >= 0) {
-                document.getElementById("form-title").innerText = "Editar Docente";
-                document.getElementById("doc-id").value = docentes[index].id;
-                document.getElementById("doc-name").value = docentes[index].name;
-                document.getElementById("edit-index").value = index;
+            document.getElementById('docente-form').classList.remove('hidden');
+            if(index >= 0) {
+                document.getElementById('form-title').innerText = "Editar Docente";
+                document.getElementById('doc-id').value = docentes[index].id;
+                document.getElementById('doc-name').value = docentes[index].name;
+                document.getElementById('edit-index').value = index;
             } else {
-                document.getElementById("form-title").innerText =
-                    "Nuevo Registro de Docente";
-                document.getElementById("doc-id").value = "";
-                document.getElementById("doc-name").value = "";
-                document.getElementById("edit-index").value = "-1";
+                document.getElementById('form-title').innerText = "Nuevo Registro de Docente";
+                document.getElementById('doc-id').value = "";
+                document.getElementById('doc-name').value = "";
+                document.getElementById('edit-index').value = "-1";
             }
         }
-        function closeDocenteForm() {
-            document.getElementById("docente-form").classList.add("hidden");
-        }
+        function closeDocenteForm() { document.getElementById('docente-form').classList.add('hidden'); }
         function saveDocente() {
-            const id = document.getElementById("doc-id").value.trim();
-            const name = document.getElementById("doc-name").value.trim();
-            const editIndex = parseInt(document.getElementById("edit-index").value);
-            if (!id || !name) return alert("Completa los campos.");
-            if (editIndex === -1) {
-                if (docentes.some((d) => d.id === id))
-                    return alert("Documento ya existe.");
+            const id = document.getElementById('doc-id').value.trim();
+            const name = document.getElementById('doc-name').value.trim();
+            const editIndex = parseInt(document.getElementById('edit-index').value);
+            if(!id || !name) return alert("Completa los campos.");
+            if(editIndex === -1) {
+                if(docentes.some(d => d.id === id)) return alert("Documento ya existe.");
                 docentes.push({ id, name, carga: [] });
             } else {
                 docentes[editIndex].id = id;
                 docentes[editIndex].name = name;
             }
-            localStorage.setItem("sanMiguelDocentes", JSON.stringify(docentes));
+            localStorage.setItem('sanMiguelDocentes', JSON.stringify(docentes));
             renderDocentes();
             closeDocenteForm();
         }
@@ -506,9 +255,9 @@
             const subject = prompt("Asignatura:");
             const grade = prompt("Grado:");
             const hours = parseInt(prompt("Horas semanales:"));
-            if (subject && grade && !isNaN(hours)) {
+            if(subject && grade && !isNaN(hours)) {
                 docentes[docIdx].carga.push({ subject, grade, hours });
-                localStorage.setItem("sanMiguelDocentes", JSON.stringify(docentes));
+                localStorage.setItem('sanMiguelDocentes', JSON.stringify(docentes));
                 renderDocentes();
             }
         }
@@ -517,285 +266,204 @@
             const subject = prompt("Editar Asignatura:", c.subject);
             const grade = prompt("Editar Grado:", c.grade);
             const hours = parseInt(prompt("Editar Horas:", c.hours));
-            if (subject && grade && !isNaN(hours)) {
+            if(subject && grade && !isNaN(hours)) {
                 docentes[docIdx].carga[cargaIdx] = { subject, grade, hours };
-                localStorage.setItem("sanMiguelDocentes", JSON.stringify(docentes));
+                localStorage.setItem('sanMiguelDocentes', JSON.stringify(docentes));
                 renderDocentes();
             }
         }
         function removeCarga(docIdx, cargaIdx) {
-            if (
-                confirm("¿Eliminar?")
-            ) {
-                docentes[docIdx].carga.splice(cargaIdx, 1);
-                localStorage.setItem("sanMiguelDocentes", JSON.stringify(docentes));
-                renderDocentes();
-            }
+            if(confirm("¿Eliminar?")) { docentes[docIdx].carga.splice(cargaIdx, 1); localStorage.setItem('sanMiguelDocentes', JSON.stringify(docentes)); renderDocentes(); }
         }
         function deleteDocente(index) {
-            if (confirm("¿Eliminar?")) {
-                docentes.splice(index, 1);
-                localStorage.setItem("sanMiguelDocentes", JSON.stringify(docentes));
-                renderDocentes();
-            }
+            if(confirm("¿Eliminar?")) { docentes.splice(index, 1); localStorage.setItem('sanMiguelDocentes', JSON.stringify(docentes)); renderDocentes(); }
         }
         function renderDocentes() {
-            const container = document.getElementById("docentes-list");
-            if (!container) return;
-            container.innerHTML = docentes
-                .map((d, docIdx) => {
-                    const totalH = d.carga.reduce((s, c) => s + c.hours, 0);
-                    return `
-                    <div class="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm mb-4">
-                        <div class="bg-slate-800 p-4 text-white flex justify-between items-center">
-                            <div><span class="text-[10px] text-blue-400 font-bold uppercase">${d.id}</span><h4 class="font-bold text-lg">${d.name}</h4></div>
-                            <div class="flex items-center gap-4">
-                                <div class="text-right border-r border-slate-600 pr-4"><span class="text-[10px] block uppercase text-slate-400">Total Horas</span><span class="text-xl font-black text-blue-400">${totalH}</span></div>
-                                <button onclick="openDocenteForm(${docIdx})" class="text-slate-400 hover:text-white"><i class="fas fa-edit"></i></button>
-                            </div>
+            const container = document.getElementById('docentes-list');
+            if(!container) return;
+            container.innerHTML = docentes.map((d, docIdx) => {
+                const totalH = d.carga.reduce((s, c) => s + c.hours, 0);
+                return `
+                <div class="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm mb-4">
+                    <div class="bg-slate-800 p-4 text-white flex justify-between items-center">
+                        <div><span class="text-[10px] text-blue-400 font-bold uppercase">${d.id}</span><h4 class="font-bold text-lg">${d.name}</h4></div>
+                        <div class="flex items-center gap-4">
+                            <div class="text-right border-r border-slate-600 pr-4"><span class="text-[10px] block uppercase text-slate-400">Total Horas</span><span class="text-xl font-black text-blue-400">${totalH}</span></div>
+                            <button onclick="openDocenteForm(${docIdx})" class="text-slate-400 hover:text-white"><i class="fas fa-edit"></i></button>
                         </div>
-                        <div class="p-5">
-                            <div class="flex justify-between items-center mb-4"><h5 class="text-xs font-bold text-slate-500 uppercase">Carga Académica</h5><button onclick="addCarga(${docIdx})" class="text-blue-600 hover:text-blue-800 text-xs font-bold"><i class="fas fa-plus-circle mr-1"></i> Asignar Materia</button></div>
-                            <div class=" md:grid-cols-2 lg:grid-cols-3 gap-3">
-                                ${d.carga
-                                    .map(
-                                        (c, cIdx) => `
-                                    <div class="bg-slate-50 p-3 rounded-xl border border-slate-100 flex justify-between items-center">
-                                        <div><div class="font-bold text-slate-700 text-sm">${c.subject}</div><div class="text-[10px] text-slate-500 font-bold uppercase">${c.grade} | ${c.hours}h</div></div>
-                                        <div class="flex gap-1">
-                                            <button onclick="editCarga(${docIdx}, ${cIdx})" class="text-slate-300 hover:text-blue-500 p-1"><i class="fas fa-edit text-xs"></i></button>
-                                            <button onclick="removeCarga(${docIdx}, ${cIdx})" class="text-slate-300 hover:text-red-500 p-1"><i class="fas fa-times text-xs"></i></button>
-                                        </div>
+                    </div>
+                    <div class="p-5">
+                        <div class="flex justify-between items-center mb-4"><h5 class="text-xs font-bold text-slate-500 uppercase">Carga Académica</h5><button onclick="addCarga(${docIdx})" class="text-blue-600 hover:text-blue-800 text-xs font-bold"><i class="fas fa-plus-circle mr-1"></i> Asignar Materia</button></div>
+                        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
+                            ${d.carga.map((c, cIdx) => `
+                                <div class="bg-slate-50 p-3 rounded-xl border border-slate-100 flex justify-between items-center">
+                                    <div><div class="font-bold text-slate-700 text-sm">${c.subject}</div><div class="text-[10px] text-slate-500 font-bold uppercase">${c.grade} | ${c.hours}h</div></div>
+                                    <div class="flex gap-1">
+                                        <button onclick="editCarga(${docIdx}, ${cIdx})" class="text-slate-300 hover:text-blue-500 p-1"><i class="fas fa-edit text-xs"></i></button>
+                                        <button onclick="removeCarga(${docIdx}, ${cIdx})" class="text-slate-300 hover:text-red-500 p-1"><i class="fas fa-times text-xs"></i></button>
                                     </div>
-                                `
-                                    )
-                                    .join("")}
-                            </div>
-                            <div class="mt-4 pt-4 border-t border-slate-100 text-right"><button onclick="deleteDocente(${docIdx})" class="text-red-400 text-[10px] font-bold uppercase hover:text-red-600">Eliminar Docente</button></div>
+                                </div>
+                            `).join('')}
                         </div>
-                    </div>`;
-                })
-                .join("");
+                        <div class="mt-4 pt-4 border-t border-slate-100 text-right"><button onclick="deleteDocente(${docIdx})" class="text-red-400 text-[10px] font-bold uppercase hover:text-red-600">Eliminar Docente</button></div>
+                    </div>
+                </div>`;
+            }).join('');
         }
 
         // --- ASIGNATURAS ---
         function openAsignaturaForm(index = -1) {
-            document.getElementById("asignatura-form").classList.remove("hidden");
-            if (index >= 0) {
+            document.getElementById('asignatura-form').classList.remove('hidden');
+            if(index >= 0) {
                 const a = asignaturas[index];
-                document.getElementById("asig-form-title").innerText =
-                    "Editar Asignatura";
-                document.getElementById("asig-name").value = a.name;
-                document.getElementById("asig-grade").value = a.grade;
-                document.getElementById("asig-block").value = a.block;
-                document.getElementById("asig-hours").value = a.hours;
-                document.getElementById("asig-edit-index").value = index;
+                document.getElementById('asig-form-title').innerText = "Editar Asignatura";
+                document.getElementById('asig-name').value = a.name;
+                document.getElementById('asig-grade').value = a.grade;
+                document.getElementById('asig-block').value = a.block;
+                document.getElementById('asig-hours').value = a.hours;
+                document.getElementById('asig-edit-index').value = index;
             } else {
-                document.getElementById("asig-form-title").innerText =
-                    "Nueva Asignatura";
-                document.getElementById("asig-name").value = "";
-                document.getElementById("asig-grade").value = "";
-                document.getElementById("asig-block").value = "No";
-                document.getElementById("asig-hours").value = "";
-                document.getElementById("asig-edit-index").value = "-1";
+                document.getElementById('asig-form-title').innerText = "Nueva Asignatura";
+                document.getElementById('asig-name').value = "";
+                document.getElementById('asig-grade').value = "";
+                document.getElementById('asig-block').value = "No";
+                document.getElementById('asig-hours').value = "";
+                document.getElementById('asig-edit-index').value = "-1";
             }
         }
-        function closeAsignaturaForm() {
-            document.getElementById("asignatura-form").classList.add("hidden");
-        }
+        function closeAsignaturaForm() { document.getElementById('asignatura-form').classList.add('hidden'); }
         function saveAsignatura() {
-            const name = document.getElementById("asig-name").value.trim();
-            const grade = document.getElementById("asig-grade").value.trim();
-            const block = document.getElementById("asig-block").value;
-            const hours = parseInt(document.getElementById("asig-hours").value);
-            const editIndex = parseInt(
-                document.getElementById("asig-edit-index").value
-            );
+            const name = document.getElementById('asig-name').value.trim();
+            const grade = document.getElementById('asig-grade').value.trim();
+            const block = document.getElementById('asig-block').value;
+            const hours = parseInt(document.getElementById('asig-hours').value);
+            const editIndex = parseInt(document.getElementById('asig-edit-index').value);
 
-            if (!name || !grade || isNaN(hours)) return alert("Completa los datos.");
+            if(!name || !grade || isNaN(hours)) return alert("Completa los datos.");
 
-            if (editIndex === -1) {
+            if(editIndex === -1) {
                 asignaturas.push({ name, grade, block, hours });
             } else {
                 asignaturas[editIndex] = { name, grade, block, hours };
             }
 
-            localStorage.setItem(
-                "sanMiguelAsignaturas",
-                JSON.stringify(asignaturas)
-            );
+            localStorage.setItem('sanMiguelAsignaturas', JSON.stringify(asignaturas));
             renderAsignaturas();
             closeAsignaturaForm();
         }
         function renderAsignaturas() {
-            const body = document.getElementById("asignaturas-table-body");
-            if (!body) return;
-            body.innerHTML = asignaturas
-                .map(
-                    (a, index) => `
+            const body = document.getElementById('asignaturas-table-body');
+            if(!body) return;
+            body.innerHTML = asignaturas.map((a, index) => `
                 <tr class="hover:bg-gray-50 border-b transition-all">
                     <td class="p-4 font-bold text-slate-700">${a.name}</td>
                     <td class="p-4 text-slate-500 font-bold uppercase text-[10px]">${a.grade}</td>
-                    <td class="p-4"><span class="${
-                        a.block === "Si"
-                            ? "bg-orange-100 text-orange-700"
-                            : "bg-gray-100 text-gray-600"
-                    } px-2 py-1 rounded-full text-[10px] font-bold">${
-                        a.block === "Si" ? "BLOQUE" : "NORMAL"
-                    }</span></td>
+                    <td class="p-4"><span class="${a.block === 'Si' ? 'bg-orange-100 text-orange-700' : 'bg-gray-100 text-gray-600'} px-2 py-1 rounded-full text-[10px] font-bold">${a.block === 'Si' ? 'BLOQUE' : 'NORMAL'}</span></td>
                     <td class="p-4 text-center font-bold text-blue-600">${a.hours}</td>
                     <td class="p-4 text-center flex justify-center gap-2">
                         <button onclick="openAsignaturaForm(${index})" class="text-blue-400 hover:text-blue-600"><i class="fas fa-edit"></i></button>
                         <button onclick="deleteAsignatura(${index})" class="text-red-400 hover:text-red-600"><i class="fas fa-trash"></i></button>
                     </td>
                 </tr>
-            `
-                )
-                .join("");
+            `).join('');
         }
         function deleteAsignatura(index) {
-            if (confirm("¿Eliminar?")) {
-                asignaturas.splice(index, 1);
-                localStorage.setItem(
-                    "sanMiguelAsignaturas",
-                    JSON.stringify(asignaturas)
-                );
-                renderAsignaturas();
-            }
+            if(confirm("¿Eliminar?")) { asignaturas.splice(index, 1); localStorage.setItem('sanMiguelAsignaturas', JSON.stringify(asignaturas)); renderAsignaturas(); }
         }
 
         // --- HORARIOS ---
         function populateDocenteSelect() {
-            const select = document.getElementById("select-docente-horario");
-            select.innerHTML =
-                '<option value="">-- Seleccionar Docente --</option>' +
-                docentes
-                    .map(
-                        (d) => `<option value="${d.id}">${d.name}</option>`
-                    )
-                    .join("");
-            updateScheduleView();
-        }
-
-        // Listener para actualizar cuando cambie select
-        document.addEventListener("DOMContentLoaded", () => {
-            const select = document.getElementById("select-docente-horario");
-            if (select) {
-                select.addEventListener("change", () => {
-                    updateScheduleView();
-                });
-            }
-        });
-
+    const select = document.getElementById('select-docente-horario');
+    select.innerHTML = '<option value="">-- Seleccionar Docente --</option>' + docentes.map(d => `<option value="${d.id}">${d.name}</option>`).join('');
+    updateScheduleView();  // Para cargar horario al cargar opciones o cambiar selección
+}
         function generateScheduleGrid() {
-            const container = document.getElementById("schedule-container");
-            const headers = Array.from(container.children).slice(0, 6);
-            container.innerHTML = "";
-            headers.forEach((h) => container.appendChild(h));
+    const container = document.getElementById('schedule-container');
+    // Guardamos los encabezados para volver a agregarlos después de limpiar
+    const headers = Array.from(container.children).slice(0, 6);
+    container.innerHTML = '';
+    // Restauramos encabezados
+    headers.forEach(h => container.appendChild(h));
+    
+    timeSlots.forEach((time, tIdx) => {
+        // Columna de Hora
+        const timeCell = document.createElement('div');
+        timeCell.className = 'time-slot';
+        timeCell.innerText = time;
+        container.appendChild(timeCell);
 
-            timeSlots.forEach((time, tIdx) => {
-                // Columna hora
-                const timeCell = document.createElement("div");
-                timeCell.className = "time-slot";
-                timeCell.innerText = time;
-                container.appendChild(timeCell);
+        // Si es recreo (contiene "(R)"), mostramos una celda que abarca las 5 columnas (días) con texto "Recreo"
+        if (time.includes("(R)")) {
+            const breakCell = document.createElement('div');
+            breakCell.className = 'class-slot break';
+            breakCell.style.gridColumn = 'span 5'; // la celda ocupará las 5 columnas de días
+            breakCell.innerText = 'Recreo';
+            container.appendChild(breakCell);
+        } else {
+            // No es recreo: se crean 5 celdas para los días con datos o vacío
+            for (let dIdx = 0; dIdx < 5; dIdx++) {
+                const classCell = document.createElement('div');
+                classCell.className = 'class-slot';
+                classCell.onclick = () => assignClass(tIdx, dIdx);
 
-                if (time.includes("(R)")) {
-                    // Celda única de recreo que abarca las 5 columnas
-                    const breakCell = document.createElement("div");
-                    breakCell.className = "class-slot break";
-                    breakCell.style.gridColumn = "span 5";
-                    breakCell.innerText = "Recreo";
-                    container.appendChild(breakCell);
-                } else {
-                    for (let dIdx = 0; dIdx < 5; dIdx++) {
-                        const classCell = document.createElement("div");
-                        classCell.className = "class-slot";
-                        classCell.onclick = () => assignClass(tIdx, dIdx);
-
-                        const docId =
-                            document.getElementById("select-docente-horario").value;
-                        if (
-                            docId &&
-                            schedules[docId] &&
-                            schedules[docId][`${tIdx}-${dIdx}`]
-                        ) {
-                            const data = schedules[docId][`${tIdx}-${dIdx}`];
-                            classCell.innerHTML = `<div class="font-bold text-blue-700 uppercase">${data.subject}</div><div class="text-[0.6rem] text-slate-500 font-bold mt-1">${data.grade}</div>`;
-                        }
-                        container.appendChild(classCell);
-                    }
+                const docId = document.getElementById('select-docente-horario').value;
+                if(docId && schedules[docId] && schedules[docId][`${tIdx}-${dIdx}`]) {
+                    const data = schedules[docId][`${tIdx}-${dIdx}`];
+                    classCell.innerHTML = `<div class="font-bold text-blue-700 uppercase">${data.subject}</div><div class="text-[0.6rem] text-slate-500 font-bold mt-1">${data.grade}</div>`;
                 }
-            });
+
+                container.appendChild(classCell);
+            }
         }
+    });
+}
+
 
         function assignClass(tIdx, dIdx) {
-            const docId = document.getElementById("select-docente-horario").value;
-            if (!docId) return alert("Primero selecciona un docente.");
-            const doc = docentes.find((d) => d.id === docId);
-            if (doc.carga.length === 0)
-                return alert("Este docente no tiene carga académica asignada.");
-
-            let options = doc.carga
-                .map((c, i) => `${i + 1}. ${c.subject} (${c.grade})                .join("\n");
+            const docId = document.getElementById('select-docente-horario').value;
+            if(!docId) return alert("Primero selecciona un docente.");
+            const doc = docentes.find(d => d.id === docId);
+            if(doc.carga.length === 0) return alert("Este docente no tiene carga académica asignada.");
+            
+            let options = doc.carga.map((c, i) => `${i+1}. ${c.subject} (${c.grade})`).join('\n');
             let choice = prompt(`Asignar materia para este hueco:\n0. Borrar\n${options}`);
-
-            if (choice === "0") {
-                if (!schedules[docId]) return;
+            
+            if(choice === "0") {
+                if(!schedules[docId]) return;
                 delete schedules[docId][`${tIdx}-${dIdx}`];
-            } else if (choice > 0 && choice <= doc.carga.length) {
-                if (!schedules[docId]) schedules[docId] = {};
-                schedules[docId][`${tIdx}-${dIdx}`] = doc.carga[choice - 1];
+            } else if(choice > 0 && choice <= doc.carga.length) {
+                if(!schedules[docId]) schedules[docId] = {};
+                schedules[docId][`${tIdx}-${dIdx}`] = doc.carga[choice-1];
             }
-
-            localStorage.setItem("sanMiguelSchedules", JSON.stringify(schedules));
+            
+            localStorage.setItem('sanMiguelSchedules', JSON.stringify(schedules));
             generateScheduleGrid();
         }
 
-        function updateScheduleView() {
-            generateScheduleGrid();
-        }
+        function updateScheduleView() { generateScheduleGrid(); }
 
         function downloadPDF() {
-            const docId = document.getElementById("select-docente-horario").value;
-            if (!docId) return alert("Selecciona un docente.");
-            const docData = docentes.find((d) => d.id === docId);
-
+            const docId = document.getElementById('select-docente-horario').value;
+            if(!docId) return alert("Selecciona un docente.");
+            const docData = docentes.find(d => d.id === docId);
+            
             const { jsPDF } = window.jspdf;
-            const pdf = new jsPDF("l", "mm", "a4");
-
+            const pdf = new jsPDF('l', 'mm', 'a4');
+            
             pdf.setFontSize(18);
-            pdf.text(
-                "INSTITUCIÓN EDUCATIVA SAN MIGUEL",
-                148,
-                15,
-                { align: "center" }
-            );
+            pdf.text("INSTITUCIÓN EDUCATIVA SAN MIGUEL", 148, 15, { align: "center" });
             pdf.setFontSize(12);
-            pdf.text(
-                `HORARIO DE CLASES - DOCENTE: ${docData.name.toUpperCase()}`,
-                148,
-                22,
-                { align: "center" }
-            );
+            pdf.text(`HORARIO DE CLASES - DOCENTE: ${docData.name.toUpperCase()}`, 148, 22, { align: "center" });
             pdf.setFontSize(10);
-            pdf.text(
-                `Fecha de descarga: ${new Date().toLocaleDateString()}`,
-                148,
-                28,
-                { align: "center" }
-            );
+            pdf.text(`Fecha de descarga: ${new Date().toLocaleDateString()}`, 148, 28, { align: "center" });
 
             const rows = timeSlots.map((time, tIdx) => {
                 const row = [time];
-                for (let dIdx = 0; dIdx < 5; dIdx++) {
-                    if (time.includes("(R)")) {
+                for(let dIdx=0; dIdx<5; dIdx++) {
+                    if(time.includes("(R)")) {
                         row.push("RECREO");
                     } else {
-                        const data =
-                            schedules[docId] && schedules[docId][`${tIdx}-${dIdx}`]
-                                ? schedules[docId][`${tIdx}-${dIdx}`]
-                                : "";
+                        const data = (schedules[docId] && schedules[docId][`${tIdx}-${dIdx}`]) ? schedules[docId][`${tIdx}-${dIdx}`] : "";
                         row.push(data ? `${data.subject}\n(${data.grade})` : "");
                     }
                 }
@@ -803,33 +471,23 @@
             });
 
             pdf.autoTable({
-                head: [["HORA", "LUNES", "MARTES", "MIÉRCOLES", "JUEVES", "VIERNES"]],
+                head: [['HORA', 'LUNES', 'MARTES', 'MIÉRCOLES', 'JUEVES', 'VIERNES']],
                 body: rows,
                 startY: 35,
-                theme: "grid",
-                headStyles: { fillColor: [15, 23, 42], halign: "center" },
-                styles: { halign: "center", valign: "middle", fontSize: 8 },
-                columnStyles: { 0: { fontStyle: "bold", fillColor: [248 250, 252] } },
+                theme: 'grid',
+                headStyles: { fillColor: [15, 23, 42], halign: 'center' },
+                styles: { halign: 'center', valign: 'middle', fontSize: 8 },
+                columnStyles: { 0: { fontStyle: 'bold', fillColor: [248, 250, 252] } }
             });
 
-            pdf.save(
-                `Horario_${docData.name}_${new Date().toLocaleDateString()}.pdf`
-            );
+            pdf.save(`Horario_${docData.name}_${new Date().toLocaleDateString()}.pdf`);
         }
 
         function resetSystem() {
-            if (confirm("¿Borrar todo?")) {
-                localStorage.clear();
-                location.reload();
-            }
+            if(confirm("¿Borrar todo?")) { localStorage.clear(); location.reload(); }
         }
 
-        window.onload = () => {
-            renderDocentes();
-            renderAsignaturas();
-            // Puedes cambiar aquí cuál módulo mostrar al cargar la página
-            // showModule('horarios-docente');
-        };
+        window.onload = () => { renderDocentes(); renderAsignaturas(); };
     </script>
 </body>
 </html>
