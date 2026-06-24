@@ -1,168 +1,82 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IE San Miguel - Gestión de Horarios</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <style>
-        .module { display: none; }
-        .module.active { display: block; animation: fadeIn 0.5s; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px ); } to { opacity: 1; transform: translateY(0); } }
-        .sidebar { width: 280px; position: fixed; right: 0; top: 0; height: 100vh; }
-        .content { margin-right: 280px; min-height: 100vh; }
-    </style>
-</head>
-<body class="bg-gray-100 font-sans">
-
-    <!-- MENÚ LATERAL DERECHO -->
-    <nav class="sidebar bg-slate-900 text-white p-6 shadow-2xl flex flex-col">
-        <div class="text-center mb-10">
-            <div class="w-24 h-24 bg-white rounded-full mx-auto mb-4 flex items-center justify-center border-4 border-blue-500 shadow-lg overflow-hidden">
-                <!-- LOGO DE LA INSTITUCIÓN -->
-                <i class="fas fa-school text-slate-800 text-4xl"></i>
-                <!-- <img src="URL_DE_TU_LOGO" class="w-full h-full object-cover"> -->
-            </div>
-            <h1 class="text-sm font-bold text-blue-400 tracking-widest uppercase">IE San Miguel</h1>
-            <p class="text-[10px] text-gray-400 mt-1">SISTEMA DE HORARIOS</p>
-        </div>
-
-        <div class="space-y-3">
-            <button onclick="showModule('inicio')" class="w-full flex items-center p-3 rounded-xl hover:bg-blue-600 transition-all group">
-                <i class="fas fa-home w-8 group-hover:scale-110"></i> Inicio
-            </button>
-            <button onclick="showModule('docentes')" class="w-full flex items-center p-3 rounded-xl hover:bg-blue-600 transition-all group">
-                <i class="fas fa-user-tie w-8 group-hover:scale-110"></i> Docentes
-            </button>
-            <button onclick="showModule('asignaturas')" class="w-full flex items-center p-3 rounded-xl hover:bg-blue-600 transition-all group">
-                <i class="fas fa-book w-8 group-hover:scale-110"></i> Asignaturas
-            </button>
-            <button onclick="showModule('horarios-docente')" class="w-full flex items-center p-3 rounded-xl hover:bg-blue-600 transition-all group">
-                <i class="fas fa-calendar-alt w-8 group-hover:scale-110"></i> Horarios por Docente
-            </button>
-            <button onclick="showModule('horarios-grado')" class="w-full flex items-center p-3 rounded-xl hover:bg-blue-600 transition-all group">
-                <i class="fas fa-users w-8 group-hover:scale-110"></i> Horarios por Grado
-            </button>
-        </div>
-
-        <div class="mt-auto text-center text-[10px] text-gray-500 border-t border-gray-800 pt-4">
-            Gestión Académica v1.0
-        </div>
-    </nav>
-
-    <!-- CONTENIDO DE LOS MÓDULOS -->
-    <main class="content p-8">
+<!-- MÓDULO: INICIO -->
+<div id="inicio" class="module active">
+    <div class="bg-white p-12 rounded-3xl shadow-sm border border-gray-200 text-center max-w-4xl mx-auto mt-10">
+        <h2 class="text-6xl font-black text-slate-800 mb-2 tracking-tight">¡Bienvenidos al sistema de horarios!</h2>
+        <!-- Nombre de la institución con estilo mejorado -->
+        <h3 class="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600 italic mb-12">
+            Institución Educativa San Miguel
+        </h3>
         
-        <!-- MÓDULO: INICIO -->
-        <div id="inicio" class="module active">
-            <div class="bg-white p-12 rounded-3xl shadow-sm border border-gray-200 text-center max-w-4xl mx-auto mt-10">
-                <h2 class="text-5xl font-black text-slate-800 mb-4">¡Bienvenidos al sistema de horarios!</h2>
-                <h3 class="text-2xl text-blue-600 font-light italic mb-10">Institución Educativa San Miguel</h3>
+        <!-- Contenedor del Logo con funcionalidad de carga -->
+        <div class="flex flex-col items-center justify-center space-y-6">
+            <div id="logo-container" class="w-64 h-64 bg-slate-50 rounded-full border-4 border-dashed border-blue-200 flex items-center justify-center overflow-hidden shadow-inner relative group">
+                <img id="logo-preview" src="" class="hidden w-full h-full object-contain p-4">
+                <div id="logo-placeholder" class="text-slate-300 flex flex-col items-center">
+                    <i class="fas fa-image text-7xl mb-2"></i>
+                    <p class="text-xs font-bold uppercase tracking-widest">Logo Institucional</p>
+                </div>
+            </div>
+
+            <div class="flex space-x-4">
+                <label for="logo-upload" class="cursor-pointer bg-blue-600 text-white px-8 py-3 rounded-full font-bold hover:bg-blue-700 transition-all shadow-lg flex items-center">
+                    <i class="fas fa-upload mr-2"></i> Subir Logo
+                </label>
+                <input type="file" id="logo-upload" class="hidden" accept="image/*" onchange="previewLogo(event)">
                 
-                <div class="grid md:grid-cols-2 gap-6 text-left">
-                    <div class="bg-blue-50 p-6 rounded-2xl border-l-4 border-blue-500">
-                        <h4 class="font-bold text-blue-800 mb-2"><i class="fas fa-star mr-2"></i>Mis Expectativas</h4>
-                        <p class="text-gray-600 text-sm">Garantizar una organización escolar eficiente que facilite el proceso de enseñanza-aprendizaje mediante horarios equilibrados.</p>
-                    </div>
-                    <div class="bg-slate-50 p-6 rounded-2xl border-l-4 border-slate-500">
-                        <h4 class="font-bold text-slate-800 mb-2"><i class="fas fa-clock mr-2"></i>Mi Horario</h4>
-                        <p class="text-gray-600 text-sm">Acceso rápido a la distribución de clases de toda la secundaria en un solo lugar.</p>
-                    </div>
-                </div>
+                <button onclick="removeLogo()" id="btn-remove-logo" class="hidden bg-red-100 text-red-600 px-6 py-3 rounded-full font-bold hover:bg-red-200 transition-all flex items-center border border-red-200">
+                    <i class="fas fa-trash-alt mr-2"></i> Cambiar/Quitar
+                </button>
             </div>
+            <p class="text-slate-400 text-xs italic">Formatos permitidos: PNG, JPG o SVG.</p>
         </div>
+    </div>
+</div>
 
-        <!-- MÓDULO: DOCENTES -->
-        <div id="docentes" class="module">
-            <div class="bg-white p-8 rounded-3xl shadow-sm border border-gray-200">
-                <div class="flex justify-between items-center mb-8">
-                    <h2 class="text-3xl font-bold text-slate-800">Módulo de Docentes</h2>
-                    <button class="bg-blue-600 text-white px-5 py-2 rounded-lg font-bold hover:bg-blue-700 transition-all">
-                        <i class="fas fa-plus mr-2"></i> Nuevo Docente
-                    </button>
-                </div>
-                
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left">
-                        <thead>
-                            <tr class="bg-slate-50 text-slate-500 text-xs uppercase tracking-widest border-b">
-                                <th class="p-4">N° Documento</th>
-                                <th class="p-4">Nombre Completo</th>
-                                <th class="p-4">Asignatura</th>
-                                <th class="p-4">Grados Asignados</th>
-                                <th class="p-4 text-center">Horas Semanales</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-gray-100">
-                            <tr class="hover:bg-gray-50 transition-all">
-                                <td class="p-4 text-sm font-mono text-gray-500">1.023.456.789</td>
-                                <td class="p-4 font-bold text-slate-700">Carlos Mario Restrepo</td>
-                                <td class="p-4"><span class="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs">Matemáticas</span></td>
-                                <td class="p-4 text-sm">6°A, 6°B, 7°A, 7°B</td>
-                                <td class="p-4 text-center font-bold text-blue-600">22</td>
-                            </tr>
-                            <tr class="hover:bg-gray-50 transition-all">
-                                <td class="p-4 text-sm font-mono text-gray-500">1.098.765.432</td>
-                                <td class="p-4 font-bold text-slate-700">Elena Ríos Garcés</td>
-                                <td class="p-4"><span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs">Biología</span></td>
-                                <td class="p-4 text-sm">8°A, 8°B, 9°A</td>
-                                <td class="p-4 text-center font-bold text-blue-600">18</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <!-- MÓDULO: ASIGNATURAS -->
-        <div id="asignaturas" class="module">
-            <div class="bg-white p-8 rounded-3xl shadow-sm border border-gray-200">
-                <h2 class="text-3xl font-bold text-slate-800 mb-6">Módulo de Asignaturas</h2>
-                <div class="grid md:grid-cols-3 gap-6">
-                    <div class="p-6 bg-slate-50 rounded-2xl border border-gray-200">
-                        <i class="fas fa-calculator text-blue-500 text-2xl mb-4"></i>
-                        <h4 class="font-bold">Matemáticas</h4>
-                        <p class="text-xs text-gray-500">Bloques de 2 horas requeridos.</p>
-                    </div>
-                    <div class="p-6 bg-slate-50 rounded-2xl border border-gray-200">
-                        <i class="fas fa-flask text-green-500 text-2xl mb-4"></i>
-                        <h4 class="font-bold">Biología</h4>
-                        <p class="text-xs text-gray-500">Incluye horas de laboratorio.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- MÓDULO: HORARIOS POR DOCENTE -->
-        <div id="horarios-docente" class="module">
-            <div class="bg-white p-8 rounded-3xl shadow-sm border border-gray-200 text-center py-20">
-                <i class="fas fa-calendar-day text-6xl text-gray-200 mb-4"></i>
-                <h2 class="text-2xl font-bold text-slate-400">Horarios Individuales por Docente</h2>
-                <p class="text-gray-400">Módulo en proceso de generación...</p>
-            </div>
-        </div>
-
-        <!-- MÓDULO: HORARIOS POR GRADO -->
-        <div id="horarios-grado" class="module">
-            <div class="bg-white p-8 rounded-3xl shadow-sm border border-gray-200 text-center py-20">
-                <i class="fas fa-th text-6xl text-gray-200 mb-4"></i>
-                <h2 class="text-2xl font-bold text-slate-400">Horarios por Grado Escolar</h2>
-                <p class="text-gray-400">Módulo en proceso de generación...</p>
-            </div>
-        </div>
-
-    </main>
-
-    <script>
-        function showModule(moduleId) {
-            // Ocultar todos los módulos
-            const modules = document.querySelectorAll('.module');
-            modules.forEach(m => m.classList.remove('active'));
+<script>
+    // Lógica para el Logo
+    function previewLogo(event) {
+        const reader = new FileReader();
+        reader.onload = function() {
+            const output = document.getElementById('logo-preview');
+            const placeholder = document.getElementById('logo-placeholder');
+            const btnRemove = document.getElementById('btn-remove-logo');
             
-            // Mostrar el módulo seleccionado
-            document.getElementById(moduleId).classList.add('active');
+            output.src = reader.result;
+            output.classList.remove('hidden');
+            placeholder.classList.add('hidden');
+            btnRemove.classList.remove('hidden');
+            
+            // Guardar en localStorage para persistencia local
+            localStorage.setItem('schoolLogo', reader.result);
+        };
+        reader.readAsDataURL(event.target.files[0]);
+    }
+
+    function removeLogo() {
+        const output = document.getElementById('logo-preview');
+        const placeholder = document.getElementById('logo-placeholder');
+        const btnRemove = document.getElementById('btn-remove-logo');
+        const input = document.getElementById('logo-upload');
+        
+        output.src = "";
+        output.classList.add('hidden');
+        placeholder.classList.remove('hidden');
+        btnRemove.classList.add('hidden');
+        input.value = "";
+        localStorage.removeItem('schoolLogo');
+    }
+
+    // Cargar logo guardado al iniciar
+    window.onload = function() {
+        const savedLogo = localStorage.getItem('schoolLogo');
+        if (savedLogo) {
+            const output = document.getElementById('logo-preview');
+            const placeholder = document.getElementById('logo-placeholder');
+            const btnRemove = document.getElementById('btn-remove-logo');
+            output.src = savedLogo;
+            output.classList.remove('hidden');
+            placeholder.classList.add('hidden');
+            btnRemove.classList.remove('hidden');
         }
-    </script>
-</body>
-</html>
+    };
+</script>
