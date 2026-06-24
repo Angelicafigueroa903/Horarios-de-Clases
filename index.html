@@ -12,7 +12,6 @@
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px ); } to { opacity: 1; transform: translateY(0); } }
         .sidebar { width: 260px; position: fixed; right: 0; top: 0; height: 100vh; z-index: 50; }
         .content { margin-right: 260px; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
-        /* Ajuste para que los otros módulos no estén centrados verticalmente si no quieres */
         .module:not(#inicio) { width: 100%; align-self: flex-start; }
     </style>
 </head>
@@ -49,7 +48,7 @@
     <!-- CONTENIDO PRINCIPAL -->
     <main class="content p-8">
         
-        <!-- MÓDULO: INICIO (CENTRADO TOTALMENTE) -->
+        <!-- MÓDULO: INICIO -->
         <div id="inicio" class="module active w-full">
             <div class="max-w-4xl mx-auto text-center">
                 <h2 class="text-4xl font-black text-slate-800 mb-4 tracking-tight">¡Bienvenidos al sistema de horarios!</h2>
@@ -66,7 +65,7 @@
                         <h2 class="text-2xl font-bold text-slate-800">Módulo de Docentes</h2>
                         <p class="text-xs text-gray-500 italic">Gestión de planta docente</p>
                     </div>
-                    <button onclick="toggleDocenteForm()" class="bg-blue-600 text-white px-4 py-2 rounded-lg font-bold text-sm hover:bg-blue-700 transition-all">
+                    <button onclick="toggleForm('docente-form')" class="bg-blue-600 text-white px-4 py-2 rounded-lg font-bold text-sm hover:bg-blue-700 transition-all">
                         <i class="fas fa-plus mr-2"></i> Agregar Docente
                     </button>
                 </div>
@@ -101,20 +100,57 @@
             </div>
         </div>
 
-        <!-- OTROS MÓDULOS -->
+        <!-- MÓDULO: ASIGNATURAS -->
         <div id="asignaturas" class="module max-w-5xl mx-auto"> 
             <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
-                <h2 class="text-2xl font-bold text-slate-800">Módulo de Asignaturas</h2>
+                <div class="flex justify-between items-center mb-8">
+                    <div>
+                        <h2 class="text-2xl font-bold text-slate-800">Módulo de Asignaturas</h2>
+                        <p class="text-xs text-gray-500 italic">Configuración de materias y bloques</p>
+                    </div>
+                    <button onclick="toggleForm('asignatura-form')" class="bg-blue-600 text-white px-4 py-2 rounded-lg font-bold text-sm hover:bg-blue-700 transition-all">
+                        <i class="fas fa-plus mr-2"></i> Agregar Asignatura
+                    </button>
+                </div>
+
+                <div id="asignatura-form" class="hidden bg-slate-50 p-6 rounded-xl mb-8 border border-slate-200">
+                    <h3 class="font-bold mb-4 text-slate-700 text-sm uppercase">Nueva Asignatura</h3>
+                    <div class="grid md:grid-cols-3 gap-4">
+                        <input type="text" id="asig-name" placeholder="Nombre de la Materia" class="p-2 border rounded text-sm">
+                        <select id="asig-block" class="p-2 border rounded text-sm">
+                            <option value="No">¿Requiere Bloque? No</option>
+                            <option value="Si">¿Requiere Bloque? Sí</option>
+                        </select>
+                        <input type="number" id="asig-hours" placeholder="Horas Semanales" class="p-2 border rounded text-sm">
+                        <button onclick="saveAsignatura()" class="bg-green-600 text-white p-2 rounded font-bold text-sm hover:bg-green-700">Guardar</button>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm">
+                        <thead>
+                            <tr class="bg-slate-100 text-slate-500 text-[10px] uppercase tracking-widest border-b">
+                                <th class="p-4">Nombre de Materia</th>
+                                <th class="p-4">Bloque Consecutivo</th>
+                                <th class="p-4 text-center">Horas Semanales</th>
+                                <th class="p-4 text-center">Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody id="asignaturas-table-body" class="divide-y divide-gray-100"></tbody>
+                    </table>
+                </div>
             </div> 
         </div>
+
+        <!-- OTROS MÓDULOS -->
         <div id="horarios-docente" class="module max-w-5xl mx-auto"> 
-            <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
-                <h2 class="text-2xl font-bold text-slate-800">Horarios por Docente</h2>
+            <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 text-center py-20">
+                <h2 class="text-2xl font-bold text-slate-400 italic">Horarios por Docente (En Desarrollo)</h2>
             </div> 
         </div>
         <div id="horarios-grado" class="module max-w-5xl mx-auto"> 
-            <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
-                <h2 class="text-2xl font-bold text-slate-800">Horarios por Grado</h2>
+            <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 text-center py-20">
+                <h2 class="text-2xl font-bold text-slate-400 italic">Horarios por Grado (En Desarrollo)</h2>
             </div> 
         </div>
 
@@ -124,19 +160,14 @@
         function showModule(id) {
             document.querySelectorAll('.module').forEach(m => m.classList.remove('active'));
             document.getElementById(id).classList.add('active');
-            
-            // Ajustar el centrado del contenedor principal
             const main = document.querySelector('.content');
-            if (id === 'inicio') {
-                main.style.alignItems = 'center';
-            } else {
-                main.style.alignItems = 'flex-start';
-            }
+            main.style.alignItems = (id === 'inicio') ? 'center' : 'flex-start';
         }
 
-        // LÓGICA DE DOCENTES
+        function toggleForm(id) { document.getElementById(id).classList.toggle('hidden'); }
+
+        // --- LÓGICA DE DOCENTES ---
         let docentes = JSON.parse(localStorage.getItem('sanMiguelDocentes')) || [];
-        function toggleDocenteForm() { document.getElementById('docente-form').classList.toggle('hidden'); }
         function saveDocente() {
             const doc = {
                 id: document.getElementById('doc-id').value,
@@ -149,13 +180,13 @@
             docentes.push(doc);
             localStorage.setItem('sanMiguelDocentes', JSON.stringify(docentes));
             renderDocentes();
-            toggleDocenteForm();
+            toggleForm('docente-form');
             document.querySelectorAll('#docente-form input').forEach(i => i.value = "");
         }
         function renderDocentes() {
             const body = document.getElementById('docentes-table-body');
             body.innerHTML = docentes.map((d, index) => `
-                <tr class="hover:bg-gray-50 transition-all">
+                <tr class="hover:bg-gray-50 transition-all border-b">
                     <td class="p-4 font-mono text-gray-500">${d.id}</td>
                     <td class="p-4 font-bold text-slate-700">${d.name}</td>
                     <td class="p-4"><span class="bg-blue-100 text-blue-700 px-2 py-1 rounded-full text-[10px] font-bold">${d.subject}</span></td>
@@ -168,13 +199,46 @@
             `).join('');
         }
         function deleteDocente(index) {
-            if(confirm("¿Eliminar?")) {
-                docentes.splice(index, 1);
-                localStorage.setItem('sanMiguelDocentes', JSON.stringify(docentes));
-                renderDocentes();
-            }
+            if(confirm("¿Eliminar?")) { docentes.splice(index, 1); localStorage.setItem('sanMiguelDocentes', JSON.stringify(docentes)); renderDocentes(); }
         }
-        window.onload = () => { renderDocentes(); };
+
+        // --- LÓGICA DE ASIGNATURAS ---
+        let asignaturas = JSON.parse(localStorage.getItem('sanMiguelAsignaturas')) || [];
+        function saveAsignatura() {
+            const asig = {
+                name: document.getElementById('asig-name').value,
+                block: document.getElementById('asig-block').value,
+                hours: document.getElementById('asig-hours').value
+            };
+            if(!asig.name || !asig.hours) return alert("Completa los datos");
+            asignaturas.push(asig);
+            localStorage.setItem('sanMiguelAsignaturas', JSON.stringify(asignaturas));
+            renderAsignaturas();
+            toggleForm('asignatura-form');
+            document.querySelectorAll('#asignatura-form input').forEach(i => i.value = "");
+        }
+        function renderAsignaturas() {
+            const body = document.getElementById('asignaturas-table-body');
+            body.innerHTML = asignaturas.map((a, index) => `
+                <tr class="hover:bg-gray-50 transition-all border-b">
+                    <td class="p-4 font-bold text-slate-700">${a.name}</td>
+                    <td class="p-4">
+                        <span class="${a.block === 'Si' ? 'bg-orange-100 text-orange-700' : 'bg-gray-100 text-gray-600'} px-2 py-1 rounded-full text-[10px] font-bold">
+                            ${a.block === 'Si' ? 'REQUERIDO' : 'NORMAL'}
+                        </span>
+                    </td>
+                    <td class="p-4 text-center font-bold text-blue-600">${a.hours}</td>
+                    <td class="p-4 text-center">
+                        <button onclick="deleteAsignatura(${index})" class="text-red-400 hover:text-red-600"><i class="fas fa-trash"></i></button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+        function deleteAsignatura(index) {
+            if(confirm("¿Eliminar?")) { asignaturas.splice(index, 1); localStorage.setItem('sanMiguelAsignaturas', JSON.stringify(asignaturas)); renderAsignaturas(); }
+        }
+
+        window.onload = () => { renderDocentes(); renderAsignaturas(); };
     </script>
 </body>
 </html>
