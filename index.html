@@ -3,123 +3,141 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Horarios - Secundaria</title>
+    <title>IE San Miguel - Sistema de Horarios</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         scroll-behavior: smooth;
+        .sidebar-right { position: fixed; right: 0; top: 0; height: 100vh; width: 260px; }
+        .main-content { margin-right: 260px; }
+        @media (max-width: 768px ) {
+            .sidebar-right { position: relative; width: 100%; height: auto; }
+            .main-content { margin-right: 0; }
+        }
     </style>
 </head>
-<body class="bg-gray-50 font-sans text-gray-900">
+<body class="bg-slate-50 font-sans text-slate-900">
 
-    <!-- Navegación -->
-    <nav class="bg-blue-600 text-white shadow-lg sticky top-0 z-50">
-        <div class="container mx-auto px-6 py-4 flex justify-between items-center">
-            <h1 class="text-2xl font-bold italic"><i class="fas fa-calendar-alt mr-2"></i>Horarios Pro</h1>
-            <div class="hidden md:flex space-x-6">
-                <a href="#inicio" class="hover:text-blue-200">Inicio</a>
-                <a href="#docentes" class="hover:text-blue-200">Docentes</a>
-                <a href="#asignaturas" class="hover:text-blue-200">Asignaturas</a>
-                <a href="#horarios-docente" class="hover:text-blue-200">Horarios Docente</a>
-                <a href="#horarios-grado" class="hover:text-blue-200">Horarios Grado</a>
+    <!-- MENÚ LATERAL DERECHO -->
+    <nav class="sidebar-right bg-slate-900 text-white p-6 shadow-2xl flex flex-col z-50">
+        <div class="mb-10 text-center">
+            <div class="w-24 h-24 bg-white rounded-full mx-auto mb-4 flex items-center justify-center text-slate-900 border-4 border-blue-500">
+                <!-- Espacio para el Logo -->
+                <i class="fas fa-school text-4xl"></i>
             </div>
+            <h2 class="text-sm font-bold uppercase tracking-widest text-blue-400">Menú de Gestión</h2>
+        </div>
+        
+        <div class="flex flex-col space-y-2 flex-grow">
+            <a href="#inicio" class="flex items-center p-3 rounded-lg hover:bg-blue-600 transition-colors">
+                <i class="fas fa-home w-8"></i> Inicio
+            </a>
+            <a href="#docentes" class="flex items-center p-3 rounded-lg hover:bg-blue-600 transition-colors">
+                <i class="fas fa-user-tie w-8"></i> Docentes
+            </a>
+            <a href="#asignaturas" class="flex items-center p-3 rounded-lg hover:bg-blue-600 transition-colors">
+                <i class="fas fa-book w-8"></i> Asignaturas
+            </a>
+            <a href="#horarios-docente" class="flex items-center p-3 rounded-lg hover:bg-blue-600 transition-colors">
+                <i class="fas fa-calendar-day w-8"></i> Horarios Docente
+            </a>
+            <a href="#horarios-grado" class="flex items-center p-3 rounded-lg hover:bg-blue-600 transition-colors">
+                <i class="fas fa-users w-8"></i> Horarios Grado
+            </a>
+        </div>
+        
+        <div class="mt-auto pt-6 border-t border-slate-700 text-xs text-slate-400 text-center">
+            &copy; 2024 IE San Miguel
         </div>
     </nav>
 
-    <!-- Sección 1: Inicio -->
-    <section id="inicio" class="min-h-screen flex items-center bg-gradient-to-r from-blue-500 to-blue-700 text-white">
-        <div class="container mx-auto px-6 py-20 text-center">
-            <h2 class="text-5xl font-extrabold mb-4">¡Bienvenidos al Sistema de Horarios!</h2>
-            <p class="text-xl mb-8 max-w-2xl mx-auto">Esta plataforma está diseñada para organizar de manera eficiente las clases de secundaria, optimizando el tiempo de docentes y estudiantes.</p>
-            
-            <div class="grid md:grid-cols-2 gap-8 mt-12">
-                <div class="bg-white/10 p-8 rounded-xl backdrop-blur-md">
-                    <h3 class="text-2xl font-bold mb-4"><i class="fas fa-bullseye mr-2"></i>Mis Expectativas</h3>
-                    <p class="text-left">Lograr una distribución equitativa de las cargas académicas, evitar cruces de horarios y garantizar que las materias fundamentales tengan sus bloques de tiempo adecuados.</p>
-                </div>
-                <div class="bg-white/10 p-8 rounded-xl backdrop-blur-md">
-                    <h3 class="text-2xl font-bold mb-4"><i class="fas fa-clock mr-2"></i>Mi Horario de Clases</h3>
-                    <p class="text-left">Aquí podrás visualizar la versión final del calendario escolar generado por nuestro algoritmo inteligente.</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Sección 2: Docentes -->
-    <section id="docentes" class="py-20 bg-white">
-        <div class="container mx-auto px-6 text-center">
-            <h2 class="text-3xl font-bold text-blue-800 mb-12">Módulo de Docentes</h2>
-            <div class="overflow-x-auto shadow-xl rounded-lg">
-                <table class="min-w-full bg-white">
-                    <thead class="bg-blue-600 text-white">
-                        <tr>
-                            <th class="py-3 px-6 text-left">Nombre del Docente</th>
-                            <th class="py-3 px-6 text-left">Especialidad</th>
-                            <th class="py-3 px-6 text-left">Grados Asignados</th>
-                        </tr>
-                    </thead>
-                    <tbody class="text-gray-700">
-                        <tr class="border-b">
-                            <td class="py-4 px-6 italic">Ejemplo: Juan Pérez</td>
-                            <td class="py-4 px-6">Matemáticas</td>
-                            <td class="py-4 px-6">1ro A, 2do B</td>
-                        </tr>
-                        <!-- Aquí se cargarán los datos reales -->
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </section>
-
-    <!-- Sección 3: Asignaturas -->
-    <section id="asignaturas" class="py-20 bg-gray-100">
-        <div class="container mx-auto px-6 text-center">
-            <h2 class="text-3xl font-bold text-blue-800 mb-12">Módulo de Asignaturas</h2>
-            <div class="grid md:grid-cols-3 gap-6">
-                <div class="bg-white p-6 rounded-lg shadow-md border-t-4 border-blue-500">
-                    <h4 class="font-bold text-xl mb-2">Matemáticas</h4>
-                    <p class="text-sm text-gray-600">Bloques de 2 horas obligatorios.</p>
-                </div>
-                <div class="bg-white p-6 rounded-lg shadow-md border-t-4 border-green-500">
-                    <h4 class="font-bold text-xl mb-2">Biología</h4>
-                    <p class="text-sm text-gray-600">Laboratorios semanales.</p>
-                </div>
-                <div class="bg-white p-6 rounded-lg shadow-md border-t-4 border-red-500">
-                    <h4 class="font-bold text-xl mb-2">Lengua Castellana</h4>
-                    <p class="text-sm text-gray-600">Enfoque en literatura y redacción.</p>
+    <!-- CONTENIDO PRINCIPAL (Izquierda) -->
+    <main class="main-content">
+        
+        <!-- SECCIÓN: INICIO -->
+        <section id="inicio" class="min-h-screen flex flex-col items-center justify-center p-10 bg-white border-b">
+            <div class="max-w-4xl text-center">
+                <h1 class="text-6xl font-black text-slate-900 mb-2">¡Bienvenidos al sistema de horarios!</h1>
+                <h2 class="text-3xl font-light text-blue-600 mb-8 italic">Institución Educativa San Miguel</h2>
+                
+                <div class="grid md:grid-cols-2 gap-8 mt-12 text-left">
+                    <div class="bg-slate-50 p-8 rounded-2xl border-l-8 border-blue-500 shadow-sm">
+                        <h3 class="text-xl font-bold mb-3"><i class="fas fa-lightbulb text-yellow-500 mr-2"></i>Expectativas</h3>
+                        <p class="text-slate-600 leading-relaxed">Organizar de manera impecable la jornada académica, garantizando que cada docente y estudiante cuente con un horario optimizado y sin conflictos.</p>
+                    </div>
+                    <div class="bg-slate-50 p-8 rounded-2xl border-l-8 border-indigo-500 shadow-sm">
+                        <h3 class="text-xl font-bold mb-3"><i class="fas fa-clock text-indigo-500 mr-2"></i>Horario General</h3>
+                        <p class="text-slate-600 leading-relaxed">Consulta aquí la distribución oficial de las jornadas de secundaria para el año lectivo actual.</p>
+                    </div>
                 </div>
             </div>
-        </div>
-    </section>
+        </section>
 
-    <!-- Sección 4: Horarios por Docente -->
-    <section id="horarios-docente" class="py-20 bg-white">
-        <div class="container mx-auto px-6 text-center">
-            <h2 class="text-3xl font-bold text-blue-800 mb-12">Horarios por Docente</h2>
-            <div class="p-10 border-2 border-dashed border-gray-300 rounded-xl bg-gray-50">
-                <i class="fas fa-user-tie text-5xl text-gray-400 mb-4"></i>
-                <p class="text-gray-500 italic">Selecciona un docente para visualizar su horario individual.</p>
+        <!-- SECCIÓN: DOCENTES -->
+        <section id="docentes" class="py-20 p-10 bg-slate-50">
+            <div class="max-w-6xl mx-auto">
+                <div class="flex justify-between items-end mb-10">
+                    <div>
+                        <h2 class="text-4xl font-bold text-slate-900">Módulo de Docentes</h2>
+                        <p class="text-slate-500">Gestión de planta docente y carga horaria</p>
+                    </div>
+                    <button class="bg-blue-600 text-white px-6 py-2 rounded-full font-bold hover:bg-blue-700 shadow-lg transition-all">
+                        <i class="fas fa-plus mr-2"></i> Agregar Docente
+                    </button>
+                </div>
+
+                <div class="bg-white rounded-3xl shadow-xl overflow-hidden border border-slate-200">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-900 text-white">
+                                <th class="p-5 font-semibold uppercase text-xs tracking-wider">Documento</th>
+                                <th class="p-5 font-semibold uppercase text-xs tracking-wider">Nombre Docente</th>
+                                <th class="p-5 font-semibold uppercase text-xs tracking-wider">Asignatura(s)</th>
+                                <th class="p-5 font-semibold uppercase text-xs tracking-wider">Grados</th>
+                                <th class="p-5 font-semibold uppercase text-xs tracking-wider text-center">Horas/Sem</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-200">
+                            <tr class="hover:bg-blue-50 transition-colors">
+                                <td class="p-5 font-mono text-sm text-slate-500">1.023.456.789</td>
+                                <td class="p-5 font-bold">Ejemplo: Prof. Carlos Mario</td>
+                                <td class="p-5">
+                                    <span class="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-bold">Matemáticas</span>
+                                </td>
+                                <td class="p-5 text-slate-600 text-sm">6°A, 6°B, 7°A</td>
+                                <td class="p-5 text-center font-bold text-blue-600">22</td>
+                            </tr>
+                            <tr class="hover:bg-blue-50 transition-colors">
+                                <td class="p-5 font-mono text-sm text-slate-500">1.098.765.432</td>
+                                <td class="p-5 font-bold">Ejemplo: Profa. Elena Ríos</td>
+                                <td class="p-5">
+                                    <span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-bold">Biología</span>
+                                </td>
+                                <td class="p-5 text-slate-600 text-sm">8°A, 9°B</td>
+                                <td class="p-5 text-center font-bold text-blue-600">18</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
-        </div>
-    </section>
+        </section>
 
-    <!-- Sección 5: Horarios por Grado -->
-    <section id="horarios-grado" class="py-20 bg-blue-50">
-        <div class="container mx-auto px-6 text-center">
-            <h2 class="text-3xl font-bold text-blue-800 mb-12">Horarios por Grado</h2>
-            <div class="p-10 border-2 border-dashed border-gray-300 rounded-xl bg-white">
-                <i class="fas fa-users text-5xl text-gray-400 mb-4"></i>
-                <p class="text-gray-500 italic">Selecciona un grado (Ej. 1ro A ) para visualizar su horario completo.</p>
+        <!-- SECCIONES DE RELLENO (Para demostrar el menú) -->
+        <section id="asignaturas" class="py-20 p-10 bg-white min-h-[50vh]">
+            <h2 class="text-3xl font-bold mb-4 text-slate-900">Módulo de Asignaturas</h2>
+            <div class="h-40 bg-slate-100 rounded-2xl flex items-center justify-center italic text-slate-400 border-2 border-dashed">
+                Contenido en desarrollo...
             </div>
-        </div>
-    </section>
+        </section>
 
-    <!-- Footer -->
-    <footer class="bg-gray-800 text-white py-8">
-        <div class="container mx-auto px-6 text-center">
-            <p>&copy; 2024 Sistema de Gestión Escolar - Secundaria. Desarrollado en GitHub.</p>
-        </div>
-    </footer>
+        <section id="horarios-docente" class="py-20 p-10 bg-slate-50 min-h-[50vh]">
+            <h2 class="text-3xl font-bold mb-4 text-slate-900">Horarios por Docente</h2>
+            <div class="h-40 bg-white rounded-2xl flex items-center justify-center italic text-slate-400 border-2 border-dashed">
+                Contenido en desarrollo...
+            </div>
+        </section>
+
+    </main>
 
 </body>
 </html>
