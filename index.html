@@ -373,38 +373,51 @@
 
         // --- HORARIOS ---
         function populateDocenteSelect() {
-            const select = document.getElementById('select-docente-horario');
-            select.innerHTML = '<option value="">-- Seleccionar Docente --</option>' + docentes.map(d => `<option value="${d.id}">${d.name}</option>`).join('');
-        }
+    const select = document.getElementById('select-docente-horario');
+    select.innerHTML = '<option value="">-- Seleccionar Docente --</option>' + docentes.map(d => `<option value="${d.id}">${d.name}</option>`).join('');
+    updateScheduleView();  // Para cargar horario al cargar opciones o cambiar selección
+}
         function generateScheduleGrid() {
-            const container = document.getElementById('schedule-container');
-            const headers = Array.from(container.children).slice(0, 6);
-            container.innerHTML = '';
-            headers.forEach(h => container.appendChild(h));
-            
-            timeSlots.forEach((time, tIdx) => {
-                const timeCell = document.createElement('div');
-                timeCell.className = 'time-slot';
-                timeCell.innerText = time;
-                container.appendChild(timeCell);
-                for (let dIdx = 0; dIdx < 5; dIdx++) {
-                    const classCell = document.createElement('div');
-                    classCell.className = 'class-slot';
-                    if (time.includes("(R)")) {
-                        classCell.classList.add('break');
-                        classCell.innerText = 'Recreo';
-                    } else {
-                        classCell.onclick = () => assignClass(tIdx, dIdx);
-                        const docId = document.getElementById('select-docente-horario').value;
-                        if(docId && schedules[docId] && schedules[docId][`${tIdx}-${dIdx}`]) {
-                            const data = schedules[docId][`${tIdx}-${dIdx}`];
-                            classCell.innerHTML = `<div class="font-bold text-blue-700 uppercase">${data.subject}</div><div class="text-[0.6rem] text-slate-500 font-bold mt-1">${data.grade}</div>`;
-                        }
-                    }
-                    container.appendChild(classCell);
+    const container = document.getElementById('schedule-container');
+    // Guardamos los encabezados para volver a agregarlos después de limpiar
+    const headers = Array.from(container.children).slice(0, 6);
+    container.innerHTML = '';
+    // Restauramos encabezados
+    headers.forEach(h => container.appendChild(h));
+    
+    timeSlots.forEach((time, tIdx) => {
+        // Columna de Hora
+        const timeCell = document.createElement('div');
+        timeCell.className = 'time-slot';
+        timeCell.innerText = time;
+        container.appendChild(timeCell);
+
+        // Si es recreo (contiene "(R)"), mostramos una celda que abarca las 5 columnas (días) con texto "Recreo"
+        if (time.includes("(R)")) {
+            const breakCell = document.createElement('div');
+            breakCell.className = 'class-slot break';
+            breakCell.style.gridColumn = 'span 5'; // la celda ocupará las 5 columnas de días
+            breakCell.innerText = 'Recreo';
+            container.appendChild(breakCell);
+        } else {
+            // No es recreo: se crean 5 celdas para los días con datos o vacío
+            for (let dIdx = 0; dIdx < 5; dIdx++) {
+                const classCell = document.createElement('div');
+                classCell.className = 'class-slot';
+                classCell.onclick = () => assignClass(tIdx, dIdx);
+
+                const docId = document.getElementById('select-docente-horario').value;
+                if(docId && schedules[docId] && schedules[docId][`${tIdx}-${dIdx}`]) {
+                    const data = schedules[docId][`${tIdx}-${dIdx}`];
+                    classCell.innerHTML = `<div class="font-bold text-blue-700 uppercase">${data.subject}</div><div class="text-[0.6rem] text-slate-500 font-bold mt-1">${data.grade}</div>`;
                 }
-            });
+
+                container.appendChild(classCell);
+            }
         }
+    });
+}
+
 
         function assignClass(tIdx, dIdx) {
             const docId = document.getElementById('select-docente-horario').value;
