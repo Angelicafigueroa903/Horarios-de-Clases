@@ -6,6 +6,9 @@
     <title>IE San Miguel - Gestión de Horarios</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Librerías para PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
     <style>
         .module { display: none; }
         .module.active { display: block; animation: fadeIn 0.4s ease-out; }
@@ -13,10 +16,12 @@
         .sidebar { width: 260px; position: fixed; right: 0; top: 0; height: 100vh; z-index: 50; }
         .content { margin-right: 260px; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
         .module:not(#inicio) { width: 100%; align-self: flex-start; }
-        .schedule-grid { display: grid; grid-template-columns: 100px repeat(5, 1fr); gap: 1px; background-color: #e2e8f0; border: 1px solid #e2e8f0; }
-        .schedule-header { background-color: #0f172a; color: white; padding: 10px; text-align: center; font-weight: bold; font-size: 0.75rem; text-transform: uppercase; }
-        .time-slot { background-color: #f8fafc; padding: 10px; text-align: center; font-weight: bold; font-size: 0.7rem; color: #64748b; }
-        .class-slot { background-color: white; padding: 8px; min-height: 60px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.7rem; border: 1px solid #f1f5f9; }
+        .schedule-grid { display: grid; grid-template-columns: 120px repeat(5, 1fr); gap: 1px; background-color: #e2e8f0; border: 1px solid #e2e8f0; }
+        .schedule-header { background-color: #0f172a; color: white; padding: 12px; text-align: center; font-weight: bold; font-size: 0.75rem; text-transform: uppercase; }
+        .time-slot { background-color: #f8fafc; padding: 12px; text-align: center; font-weight: bold; font-size: 0.65rem; color: #475569; display: flex; align-items: center; justify-content: center; }
+        .class-slot { background-color: white; padding: 6px; min-height: 70px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.7rem; border: 1px solid #f1f5f9; cursor: pointer; transition: background 0.2s; }
+        .class-slot:hover:not(.break) { background-color: #f0f9ff; }
+        .break { background-color: #f1f5f9 !important; color: #94a3b8; font-weight: bold; text-transform: uppercase; letter-spacing: 0.1em; font-size: 0.6rem; }
     </style>
 </head>
 <body class="bg-gray-50 font-sans text-slate-900">
@@ -74,7 +79,6 @@
                         <i class="fas fa-plus mr-2"></i> Nuevo Docente
                     </button>
                 </div>
-
                 <div id="docente-form" class="hidden bg-slate-50 p-6 rounded-xl mb-8 border border-slate-200">
                     <h3 id="form-title" class="font-bold mb-4 text-slate-700 text-sm uppercase">Registro de Docente</h3>
                     <input type="hidden" id="edit-index" value="-1">
@@ -87,7 +91,6 @@
                         </div>
                     </div>
                 </div>
-
                 <div id="docentes-list" class="space-y-6"></div>
             </div>
         </div>
@@ -98,23 +101,28 @@
                 <div class="flex justify-between items-center mb-8">
                     <div>
                         <h2 class="text-2xl font-bold text-slate-800">Módulo de Asignaturas</h2>
-                        <p class="text-xs text-gray-500 italic">Configuración de materias y bloques</p>
+                        <p class="text-xs text-gray-500 italic">Plan de estudios por grado</p>
                     </div>
-                    <button onclick="toggleForm('asignatura-form')" class="bg-blue-600 text-white px-4 py-2 rounded-lg font-bold text-sm hover:bg-blue-700 transition-all">
+                    <button onclick="openAsignaturaForm()" class="bg-blue-600 text-white px-4 py-2 rounded-lg font-bold text-sm hover:bg-blue-700 transition-all">
                         <i class="fas fa-plus mr-2"></i> Agregar Asignatura
                     </button>
                 </div>
 
                 <div id="asignatura-form" class="hidden bg-slate-50 p-6 rounded-xl mb-8 border border-slate-200">
-                    <h3 class="font-bold mb-4 text-slate-700 text-sm uppercase">Nueva Asignatura</h3>
-                    <div class="grid md:grid-cols-3 gap-4">
-                        <input type="text" id="asig-name" placeholder="Nombre de la Materia" class="p-2 border rounded text-sm">
+                    <h3 id="asig-form-title" class="font-bold mb-4 text-slate-700 text-sm uppercase">Nueva Asignatura</h3>
+                    <input type="hidden" id="asig-edit-index" value="-1">
+                    <div class="grid md:grid-cols-4 gap-4">
+                        <input type="text" id="asig-name" placeholder="Asignatura" class="p-2 border rounded text-sm">
+                        <input type="text" id="asig-grade" placeholder="Grado" class="p-2 border rounded text-sm">
                         <select id="asig-block" class="p-2 border rounded text-sm">
-                            <option value="No">¿Requiere Bloque? No</option>
-                            <option value="Si">¿Requiere Bloque? Sí</option>
+                            <option value="No">¿Bloque? No</option>
+                            <option value="Si">¿Bloque? Sí</option>
                         </select>
-                        <input type="number" id="asig-hours" placeholder="Horas Semanales" class="p-2 border rounded text-sm">
-                        <button onclick="saveAsignatura()" class="bg-green-600 text-white p-2 rounded font-bold text-sm hover:bg-green-700">Guardar</button>
+                        <input type="number" id="asig-hours" placeholder="Horas/Sem" class="p-2 border rounded text-sm">
+                    </div>
+                    <div class="flex gap-2 mt-4">
+                        <button onclick="saveAsignatura()" class="bg-green-600 text-white p-2 rounded font-bold text-sm hover:bg-green-700 flex-grow">Guardar</button>
+                        <button onclick="closeAsignaturaForm()" class="bg-gray-400 text-white p-2 rounded font-bold text-sm hover:bg-gray-500">Cancelar</button>
                     </div>
                 </div>
 
@@ -122,9 +130,10 @@
                     <table class="w-full text-left text-sm">
                         <thead>
                             <tr class="bg-slate-100 text-slate-500 text-[10px] uppercase tracking-widest border-b">
-                                <th class="p-4">Nombre de Materia</th>
-                                <th class="p-4">Bloque Consecutivo</th>
-                                <th class="p-4 text-center">Horas Semanales</th>
+                                <th class="p-4">Materia</th>
+                                <th class="p-4">Grado</th>
+                                <th class="p-4">Bloque</th>
+                                <th class="p-4 text-center">Horas</th>
                                 <th class="p-4 text-center">Acción</th>
                             </tr>
                         </thead>
@@ -140,13 +149,15 @@
                 <div class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
                     <div>
                         <h2 class="text-2xl font-bold text-slate-800">Horarios por Docente</h2>
-                        <p class="text-xs text-gray-500 italic">Visualización individual de carga académica</p>
+                        <p class="text-xs text-gray-500 italic">Gestión de tiempos y descarga</p>
                     </div>
-                    <div class="flex items-center gap-2">
-                        <label class="text-xs font-bold text-slate-600">Seleccionar Docente:</label>
-                        <select id="select-docente-horario" onchange="updateScheduleView()" class="p-2 border rounded-lg text-sm bg-slate-50 outline-none focus:ring-2 focus:ring-blue-500">
-                            <option value="">-- Elija un docente --</option>
+                    <div class="flex items-center gap-3">
+                        <select id="select-docente-horario" onchange="updateScheduleView()" class="p-2 border rounded-lg text-sm bg-slate-50 outline-none">
+                            <option value="">-- Seleccionar Docente --</option>
                         </select>
+                        <button onclick="downloadPDF()" class="bg-red-600 text-white px-4 py-2 rounded-lg font-bold text-sm hover:bg-red-700 shadow-md">
+                            <i class="fas fa-file-pdf mr-2"></i> Descargar PDF
+                        </button>
                     </div>
                 </div>
                 <div class="overflow-x-auto">
@@ -165,7 +176,7 @@
         <!-- MÓDULO: HORARIOS POR GRADO -->
         <div id="horarios-grado" class="module max-w-5xl mx-auto"> 
             <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 text-center py-20">
-                <h2 class="text-2xl font-bold text-slate-400 italic">Horarios por Grado (Próximo Módulo)</h2>
+                <h2 class="text-2xl font-bold text-slate-400 italic">Horarios por Grado (En Desarrollo)</h2>
             </div> 
         </div>
 
@@ -174,9 +185,8 @@
             <div class="bg-white p-12 rounded-3xl shadow-sm border border-red-100 text-center">
                 <i class="fas fa-exclamation-triangle text-6xl text-red-500 mb-6"></i>
                 <h2 class="text-3xl font-bold text-slate-800 mb-4">Zona de Peligro</h2>
-                <p class="text-gray-500 mb-8 italic text-lg">Esta acción borrará todos los docentes, asignaturas y horarios registrados.</p>
                 <button onclick="resetSystem()" class="bg-red-600 text-white px-10 py-4 rounded-2xl font-black text-lg hover:bg-red-700 shadow-xl">
-                    <i class="fas fa-trash-alt mr-2"></i> RESTABLECER DE FÁBRICA
+                    RESTABLECER DE FÁBRICA
                 </button>
             </div>
         </div>
@@ -184,21 +194,30 @@
     </main>
 
     <script>
+        // --- DATOS ---
         let docentes = JSON.parse(localStorage.getItem('sanMiguelDocentes')) || [];
         let asignaturas = JSON.parse(localStorage.getItem('sanMiguelAsignaturas')) || [];
+        let schedules = JSON.parse(localStorage.getItem('sanMiguelSchedules')) || {};
+
+        const timeSlots = [
+            "07:00 - 07:55",
+            "07:55 - 08:50",
+            "08:50 - 09:45",
+            "09:45 - 10:15 (R)",
+            "10:15 - 11:10",
+            "11:10 - 12:05",
+            "12:05 - 13:00"
+        ];
 
         function showModule(id) {
             document.querySelectorAll('.module').forEach(m => m.classList.remove('active'));
             document.getElementById(id).classList.add('active');
             const main = document.querySelector('.content');
             main.style.alignItems = (id === 'inicio' || id === 'configuracion') ? 'center' : 'flex-start';
-            
             if(id === 'docentes') renderDocentes();
             if(id === 'asignaturas') renderAsignaturas();
             if(id === 'horarios-docente') { populateDocenteSelect(); generateScheduleGrid(); }
         }
-
-        function toggleForm(id) { document.getElementById(id).classList.toggle('hidden'); }
 
         // --- DOCENTES ---
         function openDocenteForm(index = -1) {
@@ -293,24 +312,58 @@
         }
 
         // --- ASIGNATURAS ---
+        function openAsignaturaForm(index = -1) {
+            document.getElementById('asignatura-form').classList.remove('hidden');
+            if(index >= 0) {
+                const a = asignaturas[index];
+                document.getElementById('asig-form-title').innerText = "Editar Asignatura";
+                document.getElementById('asig-name').value = a.name;
+                document.getElementById('asig-grade').value = a.grade;
+                document.getElementById('asig-block').value = a.block;
+                document.getElementById('asig-hours').value = a.hours;
+                document.getElementById('asig-edit-index').value = index;
+            } else {
+                document.getElementById('asig-form-title').innerText = "Nueva Asignatura";
+                document.getElementById('asig-name').value = "";
+                document.getElementById('asig-grade').value = "";
+                document.getElementById('asig-block').value = "No";
+                document.getElementById('asig-hours').value = "";
+                document.getElementById('asig-edit-index').value = "-1";
+            }
+        }
+        function closeAsignaturaForm() { document.getElementById('asignatura-form').classList.add('hidden'); }
         function saveAsignatura() {
-            const asig = { name: document.getElementById('asig-name').value, block: document.getElementById('asig-block').value, hours: document.getElementById('asig-hours').value };
-            if(!asig.name || !asig.hours) return alert("Completa los datos");
-            asignaturas.push(asig);
+            const name = document.getElementById('asig-name').value.trim();
+            const grade = document.getElementById('asig-grade').value.trim();
+            const block = document.getElementById('asig-block').value;
+            const hours = parseInt(document.getElementById('asig-hours').value);
+            const editIndex = parseInt(document.getElementById('asig-edit-index').value);
+
+            if(!name || !grade || isNaN(hours)) return alert("Completa los datos.");
+
+            if(editIndex === -1) {
+                asignaturas.push({ name, grade, block, hours });
+            } else {
+                asignaturas[editIndex] = { name, grade, block, hours };
+            }
+
             localStorage.setItem('sanMiguelAsignaturas', JSON.stringify(asignaturas));
             renderAsignaturas();
-            toggleForm('asignatura-form');
-            document.querySelectorAll('#asignatura-form input').forEach(i => i.value = "");
+            closeAsignaturaForm();
         }
         function renderAsignaturas() {
             const body = document.getElementById('asignaturas-table-body');
             if(!body) return;
             body.innerHTML = asignaturas.map((a, index) => `
-                <tr class="hover:bg-gray-50 transition-all border-b">
+                <tr class="hover:bg-gray-50 border-b transition-all">
                     <td class="p-4 font-bold text-slate-700">${a.name}</td>
-                    <td class="p-4"><span class="${a.block === 'Si' ? 'bg-orange-100 text-orange-700' : 'bg-gray-100 text-gray-600'} px-2 py-1 rounded-full text-[10px] font-bold">${a.block === 'Si' ? 'REQUERIDO' : 'NORMAL'}</span></td>
+                    <td class="p-4 text-slate-500 font-bold uppercase text-[10px]">${a.grade}</td>
+                    <td class="p-4"><span class="${a.block === 'Si' ? 'bg-orange-100 text-orange-700' : 'bg-gray-100 text-gray-600'} px-2 py-1 rounded-full text-[10px] font-bold">${a.block === 'Si' ? 'BLOQUE' : 'NORMAL'}</span></td>
                     <td class="p-4 text-center font-bold text-blue-600">${a.hours}</td>
-                    <td class="p-4 text-center"><button onclick="deleteAsignatura(${index})" class="text-red-400 hover:text-red-600"><i class="fas fa-trash"></i></button></td>
+                    <td class="p-4 text-center flex justify-center gap-2">
+                        <button onclick="openAsignaturaForm(${index})" class="text-blue-400 hover:text-blue-600"><i class="fas fa-edit"></i></button>
+                        <button onclick="deleteAsignatura(${index})" class="text-red-400 hover:text-red-600"><i class="fas fa-trash"></i></button>
+                    </td>
                 </tr>
             `).join('');
         }
@@ -318,55 +371,107 @@
             if(confirm("¿Eliminar?")) { asignaturas.splice(index, 1); localStorage.setItem('sanMiguelAsignaturas', JSON.stringify(asignaturas)); renderAsignaturas(); }
         }
 
-        // --- HORARIOS POR DOCENTE ---
+        // --- HORARIOS ---
         function populateDocenteSelect() {
             const select = document.getElementById('select-docente-horario');
-            select.innerHTML = '<option value="">-- Elija un docente --</option>' + docentes.map(d => `<option value="${d.id}">${d.name}</option>`).join('');
+            select.innerHTML = '<option value="">-- Seleccionar Docente --</option>' + docentes.map(d => `<option value="${d.id}">${d.name}</option>`).join('');
         }
         function generateScheduleGrid() {
             const container = document.getElementById('schedule-container');
             const headers = Array.from(container.children).slice(0, 6);
             container.innerHTML = '';
             headers.forEach(h => container.appendChild(h));
-            const times = ["07:00 - 08:00", "08:00 - 09:00", "09:00 - 10:00", "10:00 - 10:30 (D)", "10:30 - 11:30", "11:30 - 12:30", "12:30 - 13:30"];
-            times.forEach(time => {
+            
+            timeSlots.forEach((time, tIdx) => {
                 const timeCell = document.createElement('div');
                 timeCell.className = 'time-slot';
                 timeCell.innerText = time;
                 container.appendChild(timeCell);
-                for (let i = 0; i < 5; i++) {
+                for (let dIdx = 0; dIdx < 5; dIdx++) {
                     const classCell = document.createElement('div');
                     classCell.className = 'class-slot';
-                    if (time.includes("(D)")) {
-                        classCell.style.backgroundColor = "#f1f5f9";
-                        classCell.innerHTML = '<span class="text-slate-400 font-bold uppercase tracking-widest" style="font-size: 0.5rem">Descanso</span>';
+                    if (time.includes("(R)")) {
+                        classCell.classList.add('break');
+                        classCell.innerText = 'Recreo';
+                    } else {
+                        classCell.onclick = () => assignClass(tIdx, dIdx);
+                        const docId = document.getElementById('select-docente-horario').value;
+                        if(docId && schedules[docId] && schedules[docId][`${tIdx}-${dIdx}`]) {
+                            const data = schedules[docId][`${tIdx}-${dIdx}`];
+                            classCell.innerHTML = `<div class="font-bold text-blue-700 uppercase">${data.subject}</div><div class="text-[0.6rem] text-slate-500 font-bold mt-1">${data.grade}</div>`;
+                        }
                     }
                     container.appendChild(classCell);
                 }
             });
         }
-        function updateScheduleView() {
+
+        function assignClass(tIdx, dIdx) {
             const docId = document.getElementById('select-docente-horario').value;
+            if(!docId) return alert("Primero selecciona un docente.");
             const doc = docentes.find(d => d.id === docId);
-            document.querySelectorAll('.class-slot').forEach(slot => { if (!slot.innerText.includes("Descanso")) slot.innerHTML = ''; });
-            if (doc && doc.carga.length > 0) {
-                const allSlots = Array.from(document.querySelectorAll('.class-slot'));
-                allSlots.forEach((slot, index) => {
-                    if (index % 7 === 1 && !slot.innerHTML.includes("Descanso")) {
-                        slot.innerHTML = `<div class="font-bold text-blue-700">${doc.carga[0].subject}</div><div class="text-[0.6rem] text-slate-500 mt-1 font-semibold">${doc.carga[0].grade}</div>`;
-                    }
-                });
+            if(doc.carga.length === 0) return alert("Este docente no tiene carga académica asignada.");
+            
+            let options = doc.carga.map((c, i) => `${i+1}. ${c.subject} (${c.grade})`).join('\n');
+            let choice = prompt(`Asignar materia para este hueco:\n0. Borrar\n${options}`);
+            
+            if(choice === "0") {
+                if(!schedules[docId]) return;
+                delete schedules[docId][`${tIdx}-${dIdx}`];
+            } else if(choice > 0 && choice <= doc.carga.length) {
+                if(!schedules[docId]) schedules[docId] = {};
+                schedules[docId][`${tIdx}-${dIdx}`] = doc.carga[choice-1];
             }
+            
+            localStorage.setItem('sanMiguelSchedules', JSON.stringify(schedules));
+            generateScheduleGrid();
         }
 
-        // --- SISTEMA ---
+        function updateScheduleView() { generateScheduleGrid(); }
+
+        function downloadPDF() {
+            const docId = document.getElementById('select-docente-horario').value;
+            if(!docId) return alert("Selecciona un docente.");
+            const docData = docentes.find(d => d.id === docId);
+            
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF('l', 'mm', 'a4');
+            
+            pdf.setFontSize(18);
+            pdf.text("INSTITUCIÓN EDUCATIVA SAN MIGUEL", 148, 15, { align: "center" });
+            pdf.setFontSize(12);
+            pdf.text(`HORARIO DE CLASES - DOCENTE: ${docData.name.toUpperCase()}`, 148, 22, { align: "center" });
+            pdf.setFontSize(10);
+            pdf.text(`Fecha de descarga: ${new Date().toLocaleDateString()}`, 148, 28, { align: "center" });
+
+            const rows = timeSlots.map((time, tIdx) => {
+                const row = [time];
+                for(let dIdx=0; dIdx<5; dIdx++) {
+                    if(time.includes("(R)")) {
+                        row.push("RECREO");
+                    } else {
+                        const data = (schedules[docId] && schedules[docId][`${tIdx}-${dIdx}`]) ? schedules[docId][`${tIdx}-${dIdx}`] : "";
+                        row.push(data ? `${data.subject}\n(${data.grade})` : "");
+                    }
+                }
+                return row;
+            });
+
+            pdf.autoTable({
+                head: [['HORA', 'LUNES', 'MARTES', 'MIÉRCOLES', 'JUEVES', 'VIERNES']],
+                body: rows,
+                startY: 35,
+                theme: 'grid',
+                headStyles: { fillColor: [15, 23, 42], halign: 'center' },
+                styles: { halign: 'center', valign: 'middle', fontSize: 8 },
+                columnStyles: { 0: { fontStyle: 'bold', fillColor: [248, 250, 252] } }
+            });
+
+            pdf.save(`Horario_${docData.name}_${new Date().toLocaleDateString()}.pdf`);
+        }
+
         function resetSystem() {
-            if(confirm("¡ATENCIÓN! Esto borrará absolutamente TODO. ¿Estás seguro?")) {
-                localStorage.clear();
-                docentes = []; asignaturas = [];
-                alert("Sistema restablecido.");
-                location.reload();
-            }
+            if(confirm("¿Borrar todo?")) { localStorage.clear(); location.reload(); }
         }
 
         window.onload = () => { renderDocentes(); renderAsignaturas(); };
