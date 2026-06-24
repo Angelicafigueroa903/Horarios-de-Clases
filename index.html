@@ -51,26 +51,26 @@
         <!-- MÓDULO: INICIO -->
         <div id="inicio" class="module active">
             <div class="max-w-3xl mx-auto text-center mt-12">
-                <h2 class="text-4xl font-black text-slate-800 mb-2 tracking-tight">¡Bienvenidos al sistema de horarios!</h2>
-                <h3 class="text-3xl font-bold text-blue-600 italic mb-12">Institución Educativa San Miguel</h3>
+                <h2 class="text-3xl font-black text-slate-800 mb-2 tracking-tight">¡Bienvenidos al sistema de horarios!</h2>
+                <h3 class="text-2xl font-bold text-blue-600 italic mb-12">Institución Educativa San Miguel</h3>
                 
                 <div class="relative inline-block">
-                    <div id="main-logo-container" class="w-64 h-64 bg-white rounded-3xl border-2 border-dashed border-slate-200 flex items-center justify-center overflow-hidden shadow-xl hover:border-blue-400 transition-all">
+                    <div id="main-logo-container" class="w-56 h-56 bg-white rounded-3xl border-2 border-dashed border-slate-200 flex items-center justify-center overflow-hidden shadow-xl transition-all">
                         <img id="main-logo-preview" src="" class="hidden w-full h-full object-contain p-4">
                         <div id="main-logo-placeholder" class="text-slate-300 flex flex-col items-center">
-                            <i class="fas fa-image text-6xl mb-3"></i>
-                            <p class="text-[10px] font-bold uppercase tracking-widest">Logo Institucional</p>
+                            <i class="fas fa-image text-5xl mb-3"></i>
+                            <p class="text-[10px] font-bold uppercase tracking-widest text-center">Logo Institucional</p>
                         </div>
                     </div>
 
                     <div class="mt-8 flex justify-center space-x-3">
-                        <label for="logo-input" class="cursor-pointer bg-blue-600 text-white px-6 py-3 rounded-xl font-bold text-sm uppercase tracking-wider hover:bg-blue-700 shadow-lg transition-all flex items-center">
-                            <i class="fas fa-plus-circle mr-2"></i> Agregar Logo
+                        <label for="logo-input" class="cursor-pointer bg-blue-600 text-white px-5 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider hover:bg-blue-700 shadow-lg transition-all flex items-center">
+                            <i class="fas fa-plus-circle mr-2"></i> Subir Logo
                         </label>
                         <input type="file" id="logo-input" class="hidden" accept="image/*" onchange="handleImage(this)">
                         
-                        <button onclick="triggerEdit()" id="btn-edit" class="hidden bg-white text-slate-700 px-6 py-3 rounded-xl font-bold text-sm uppercase tracking-wider hover:bg-slate-50 shadow shadow-slate-200 transition-all flex items-center border border-slate-200">
-                            <i class="fas fa-edit mr-2 text-blue-500"></i> Editar
+                        <button onclick="triggerEdit()" id="btn-edit" class="hidden bg-white text-slate-700 px-5 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider hover:bg-slate-50 shadow-sm transition-all flex items-center border border-slate-200">
+                            <i class="fas fa-edit mr-2 text-blue-500"></i> Cambiar
                         </button>
                     </div>
                 </div>
@@ -79,10 +79,47 @@
 
         <!-- MÓDULO: DOCENTES -->
         <div id="docentes" class="module">
-            <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
-                <h2 class="text-2xl font-bold text-slate-800 mb-6">Módulo de Docentes</h2>
-                <div class="h-48 bg-slate-50 rounded-xl border border-dashed border-slate-200 flex items-center justify-center text-slate-400 text-sm italic">
-                    Configurando tabla de docentes...
+            <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 max-w-5xl mx-auto">
+                <div class="flex justify-between items-center mb-8">
+                    <div>
+                        <h2 class="text-2xl font-bold text-slate-800">Módulo de Docentes</h2>
+                        <p class="text-xs text-gray-500 italic">Gestión de planta física y académica</p>
+                    </div>
+                    <button onclick="toggleDocenteForm()" class="bg-blue-600 text-white px-4 py-2 rounded-lg font-bold text-sm hover:bg-blue-700 transition-all">
+                        <i class="fas fa-plus mr-2"></i> Agregar Docente
+                    </button>
+                </div>
+
+                <!-- Formulario (Oculto por defecto) -->
+                <div id="docente-form" class="hidden bg-slate-50 p-6 rounded-xl mb-8 border border-slate-200">
+                    <h3 class="font-bold mb-4 text-slate-700 text-sm uppercase">Nuevo Registro de Docente</h3>
+                    <div class="grid md:grid-cols-3 gap-4">
+                        <input type="text" id="doc-id" placeholder="N° Documento" class="p-2 border rounded text-sm">
+                        <input type="text" id="doc-name" placeholder="Nombre Completo" class="p-2 border rounded text-sm">
+                        <input type="text" id="doc-subject" placeholder="Asignatura" class="p-2 border rounded text-sm">
+                        <input type="text" id="doc-grades" placeholder="Grados (Ej: 6A, 7B)" class="p-2 border rounded text-sm">
+                        <input type="number" id="doc-hours" placeholder="Horas por Asignatura" class="p-2 border rounded text-sm">
+                        <button onclick="saveDocente()" class="bg-green-600 text-white p-2 rounded font-bold text-sm hover:bg-green-700">Guardar</button>
+                    </div>
+                </div>
+
+                <!-- Tabla de Docentes -->
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm">
+                        <thead>
+                            <tr class="bg-slate-100 text-slate-500 text-[10px] uppercase tracking-widest border-b">
+                                <th class="p-4">Documento</th>
+                                <th class="p-4">Docente</th>
+                                <th class="p-4">Asignatura</th>
+                                <th class="p-4">Grados</th>
+                                <th class="p-4 text-center">Horas</th>
+                                <th class="p-4 text-center">Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody id="docentes-table-body" class="divide-y divide-gray-100">
+                            <!-- Los datos se cargarán aquí -->
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
@@ -95,51 +132,105 @@
     </main>
 
     <script>
+        // --- NAVEGACIÓN ---
         function showModule(id) {
             document.querySelectorAll('.module').forEach(m => m.classList.remove('active'));
             document.getElementById(id).classList.add('active');
         }
 
+        // --- LÓGICA DEL LOGO (CON PERSISTENCIA CORREGIDA) ---
         function handleImage(input) {
             if (input.files && input.files[0]) {
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     const imageData = e.target.result;
-                    applyLogo(imageData);
-                    localStorage.setItem('sanMiguelLogo', imageData);
+                    localStorage.setItem('sanMiguelLogo', imageData); // Guardar primero
+                    applyLogo(imageData); // Luego aplicar
                 };
                 reader.readAsDataURL(input.files[0]);
             }
         }
 
         function applyLogo(data) {
+            if (!data) return;
             const mainPreview = document.getElementById('main-logo-preview');
             const mainPlaceholder = document.getElementById('main-logo-placeholder');
             const miniPreview = document.getElementById('mini-logo-preview');
             const miniIcon = document.getElementById('mini-logo-icon');
             const btnEdit = document.getElementById('btn-edit');
 
-            if (data) {
-                mainPreview.src = data;
-                mainPreview.classList.remove('hidden');
-                mainPlaceholder.classList.add('hidden');
-                miniPreview.src = data;
-                miniPreview.classList.remove('hidden');
-                miniIcon.classList.add('hidden');
-                btnEdit.classList.remove('hidden');
-            }
+            mainPreview.src = data;
+            mainPreview.classList.remove('hidden');
+            mainPlaceholder.classList.add('hidden');
+            miniPreview.src = data;
+            miniPreview.classList.remove('hidden');
+            miniIcon.classList.add('hidden');
+            btnEdit.classList.remove('hidden');
         }
 
         function triggerEdit() {
             document.getElementById('logo-input').click();
         }
 
-        // Cargar logo al iniciar la página
-        document.addEventListener('DOMContentLoaded', () => {
-            const savedLogo = localStorage.getItem('sanMiguelLogo');
-            if (savedLogo) {
-                applyLogo(savedLogo);
+        // --- LÓGICA DE DOCENTES ---
+        let docentes = JSON.parse(localStorage.getItem('sanMiguelDocentes')) || [];
+
+        function toggleDocenteForm() {
+            const form = document.getElementById('docente-form');
+            form.classList.toggle('hidden');
+        }
+
+        function saveDocente() {
+            const doc = {
+                id: document.getElementById('doc-id').value,
+                name: document.getElementById('doc-name').value,
+                subject: document.getElementById('doc-subject').value,
+                grades: document.getElementById('doc-grades').value,
+                hours: document.getElementById('doc-hours').value
+            };
+
+            if(!doc.id || !doc.name) return alert("Por favor completa los campos principales.");
+
+            docentes.push(doc);
+            localStorage.setItem('sanMiguelDocentes', JSON.stringify(docentes));
+            renderDocentes();
+            toggleDocenteForm();
+            // Limpiar campos
+            document.querySelectorAll('#docente-form input').forEach(i => i.value = "");
+        }
+
+        function renderDocentes() {
+            const body = document.getElementById('docentes-table-body');
+            body.innerHTML = docentes.map((d, index) => `
+                <tr class="hover:bg-gray-50 transition-all">
+                    <td class="p-4 font-mono text-gray-500">${d.id}</td>
+                    <td class="p-4 font-bold text-slate-700">${d.name}</td>
+                    <td class="p-4"><span class="bg-blue-100 text-blue-700 px-2 py-1 rounded-full text-[10px] font-bold">${d.subject}</span></td>
+                    <td class="p-4 text-gray-600">${d.grades}</td>
+                    <td class="p-4 text-center font-bold text-blue-600">${d.hours}</td>
+                    <td class="p-4 text-center">
+                        <button onclick="deleteDocente(${index})" class="text-red-400 hover:text-red-600"><i class="fas fa-trash"></i></button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function deleteDocente(index) {
+            if(confirm("¿Eliminar este registro?")) {
+                docentes.splice(index, 1);
+                localStorage.setItem('sanMiguelDocentes', JSON.stringify(docentes));
+                renderDocentes();
             }
+        }
+
+        // --- INICIALIZACIÓN ---
+        window.addEventListener('load', () => {
+            // Cargar Logo
+            const savedLogo = localStorage.getItem('sanMiguelLogo');
+            if (savedLogo) applyLogo(savedLogo);
+            
+            // Cargar Docentes
+            renderDocentes();
         });
     </script>
 </body>
