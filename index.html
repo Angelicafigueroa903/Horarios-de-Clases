@@ -174,9 +174,32 @@
         </div>
 
         <!-- MÓDULO: HORARIOS POR GRADO -->
-        <div id="horarios-grado" class="module max-w-5xl mx-auto"> 
-            <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 text-center py-20">
-                <h2 class="text-2xl font-bold text-slate-400 italic">Horarios por Grado (En Desarrollo)</h2>
+        <div id="horarios-grado" class="module max-w-6xl mx-auto"> 
+            <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
+                <div class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
+                    <div>
+                        <h2 class="text-2xl font-bold text-slate-800">Horarios por Grado</h2>
+                        <p class="text-xs text-gray-500 italic">Visualización por cursos académicos</p>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <select id="select-grado-horario" onchange="updateGradoScheduleView()" class="p-2 border rounded-lg text-sm bg-slate-50 outline-none">
+                            <option value="">-- Seleccionar Grado --</option>
+                        </select>
+                        <button onclick="downloadGradoPDF()" class="bg-red-600 text-white px-4 py-2 rounded-lg font-bold text-sm hover:bg-red-700 shadow-md">
+                            <i class="fas fa-file-pdf mr-2"></i> Descargar PDF Grado
+                        </button>
+                    </div>
+                </div>
+                <div class="overflow-x-auto">
+                    <div class="schedule-grid" id="grado-schedule-container">
+                        <div class="schedule-header">Hora</div>
+                        <div class="schedule-header">Lunes</div>
+                        <div class="schedule-header">Martes</div>
+                        <div class="schedule-header">Miércoles</div>
+                        <div class="schedule-header">Jueves</div>
+                        <div class="schedule-header">Viernes</div>
+                    </div>
+                </div>
             </div> 
         </div>
 
@@ -216,7 +239,8 @@
             main.style.alignItems = (id === 'inicio' || id === 'configuracion') ? 'center' : 'flex-start';
             if(id === 'docentes') renderDocentes();
             if(id === 'asignaturas') renderAsignaturas();
-            if(id === 'horarios-docente') { populateDocenteSelect(); generateScheduleGrid(); }
+            if(id === 'horarios-docente') { populateDocenteSelect(); }
+            if(id === 'horarios-grado') { populateGradoSelect(); }
         }
 
         // --- DOCENTES ---
@@ -425,19 +449,66 @@
             const doc = docentes.find(d => d.id === docId);
             if(doc.carga.length === 0) return alert("Este docente no tiene carga académica asignada.");
             
-            let options = doc.carga.map((c, i) => `${i+1}. ${c.subject} (${c.grade})`).join('\n');
-            let choice = prompt(`Asignar materia para este hueco:\n0. Borrar\n${options}`);
+            let options = doc.carga.map((c, i) => {
+                // Buscamos en el array global de asignaturas si es bloque
+                const asigGlobal = asignaturas.find(a => a.name.toLowerCase() === c.subject.toLowerCase() && a.grade.toLowerCase() === c.grade.toLowerCase());
+                const esBloque = asigGlobal && asigGlobal.block === "Si" ? " [BLOQUE]" : "";
+                return `${i+1}. ${c.subject} (${c.grade})${esBloque}`;
+            }).join('\n');
+            
+            let choice = prompt(`Asignar materia para este hueco:\n0. Borrar celda actual\n${options}`);
             
             if(choice === "0") {
                 if(!schedules[docId]) return;
                 delete schedules[docId][`${tIdx}-${dIdx}`];
-            } else if(choice > 0 && choice <= doc.carga.length) {
-                if(!schedules[docId]) schedules[docId] = {};
-                schedules[docId][`${tIdx}-${dIdx}`] = doc.carga[choice-1];
+                localStorage.setItem('sanMiguelSchedules', JSON.stringify(schedules));
+                generateScheduleGrid();
+                return;
             }
             
-            localStorage.setItem('sanMiguelSchedules', JSON.stringify(schedules));
-            generateScheduleGrid();
+            const idx = parseInt(choice) - 1;
+            if(idx >= 0 && idx < doc.carga.length) {
+                const cargaSeleccionada = doc.carga[idx];
+                
+                // Verificar si la materia requiere Bloque
+                const asigGlobal = asignaturas.find(a => a.name.toLowerCase() === cargaSeleccionada.subject.toLowerCase() && a.grade.toLowerCase() === cargaSeleccionada.grade.toLowerCase());
+                const esBloque = asigGlobal && asigGlobal.block === "Si";
+
+                if(!schedules[docId]) schedules[docId] = {};
+
+                if(esBloque) {
+                    // El bloque requiere la hora actual y la siguiente
+                    let nxtIdx = tIdx + 1;
+                    
+                    // Si la hora siguiente es el recreo, saltamos al bloque posterior al recreo
+                    if(timeSlots[nxtIdx] && timeSlots[nxtIdx].includes("(R)")) {
+                        nxtIdx++;
+                    }
+
+                    // Validar que no se salga del horario escolar disponible
+                    if(nxtIdx >= timeSlots.length) {
+                        return alert("No hay suficiente espacio al final del día para ubicar un bloque de 2 horas.");
+                    }
+
+                    // Validar si la celda de destino del bloque ya está ocupada
+                    if(schedules[docId][`${nxtIdx}-${dIdx}`]) {
+                        if(!confirm("La segunda hora del bloque está ocupada por otra clase. ¿Deseas sobrescribirla?")) {
+                            return;
+                        }
+                    }
+
+                    // Asignar ambas horas consecutivas
+                    schedules[docId][`${tIdx}-${dIdx}`] = cargaSeleccionada;
+                    schedules[docId][`${nxtIdx}-${dIdx}`] = cargaSeleccionada;
+                    alert(`Bloque asignado con éxito en las horas consecutivas seleccionadas.`);
+                } else {
+                    // Asignación normal de una sola hora académica
+                    schedules[docId][`${tIdx}-${dIdx}`] = cargaSeleccionada;
+                }
+                
+                localStorage.setItem('sanMiguelSchedules', JSON.stringify(schedules));
+                generateScheduleGrid();
+            }
         }
 
         function updateScheduleView() { generateScheduleGrid(); }
@@ -487,6 +558,126 @@
             if(confirm("¿Borrar todo?")) { localStorage.clear(); location.reload(); }
         }
 
+// --- HORARIOS POR GRADO (LOGICA COMPLETA) ---
+        function populateGradoSelect() {
+            const select = document.getElementById('select-grado-horario');
+            if(!select) return;
+            
+            // Obtener lista única de grados desde las asignaturas registradas
+            const gradosUnicos = [...new Set(asignaturas.map(a => a.grade.trim().toUpperCase()))].sort();
+            
+            select.innerHTML = '<option value="">-- Seleccionar Grado --</option>' + 
+                               gradosUnicos.map(g => `<option value="${g}">${g}</option>`).join('');
+            updateGradoScheduleView();
+        }
+
+        function generateGradoScheduleGrid() {
+            const container = document.getElementById('grado-schedule-container');
+            if(!container) return;
+            
+            const headers = Array.from(container.children).slice(0, 6);
+            container.innerHTML = '';
+            headers.forEach(h => container.appendChild(h));
+            
+            const gradoSeleccionado = document.getElementById('select-grado-horario').value;
+
+            timeSlots.forEach((time, tIdx) => {
+                const timeCell = document.createElement('div');
+                timeCell.className = 'time-slot';
+                timeCell.innerText = time;
+                container.appendChild(timeCell);
+
+                if (time.includes("(R)")) {
+                    const breakCell = document.createElement('div');
+                    breakCell.className = 'class-slot break';
+                    breakCell.style.gridColumn = 'span 5';
+                    breakCell.innerText = 'Recreo';
+                    container.appendChild(breakCell);
+                } else {
+                    for (let dIdx = 0; dIdx < 5; dIdx++) {
+                        const classCell = document.createElement('div');
+                        classCell.className = 'class-slot';
+
+                        // Buscar si algún docente tiene asignada esta hora y día para este grado específico
+                        let asignaturaEncontrada = null;
+                        let docenteEncontrado = null;
+
+                        if(gradoSeleccionado) {
+                            for (const docId in schedules) {
+                                const slotData = schedules[docId][`${tIdx}-${dIdx}`];
+                                if(slotData && slotData.grade.trim().toUpperCase() === gradoSeleccionado) {
+                                    asignaturaEncontrada = slotData;
+                                    docenteEncontrado = docentes.find(d => d.id === docId);
+                                    break;
+                                }
+                            }
+                        }
+
+                        if(asignaturaEncontrada && docenteEncontrado) {
+                            classCell.innerHTML = `
+                                <div class="font-bold text-blue-700 uppercase text-center">${asignaturaEncontrada.subject}</div>
+                                <div class="text-[0.55rem] text-slate-500 font-medium mt-1 text-center">${docenteEncontrado.name}</div>
+                            `;
+                        }
+
+                        container.appendChild(classCell);
+                    }
+                }
+            });
+        }
+
+        function updateGradoScheduleView() {
+            generateGradoScheduleGrid();
+        }
+
+        function downloadGradoPDF() {
+            const gradoSeleccionado = document.getElementById('select-grado-horario').value;
+            if(!gradoSeleccionado) return alert("Por favor, selecciona un grado.");
+            
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF('l', 'mm', 'a4');
+            
+            pdf.setFontSize(18);
+            pdf.text("INSTITUCIÓN EDUCATIVA SAN MIGUEL", 148, 15, { align: "center" });
+            pdf.setFontSize(12);
+            pdf.text(`HORARIO DE CLASES - GRADO: ${gradoSeleccionado}`, 148, 22, { align: "center" });
+            pdf.setFontSize(10);
+            pdf.text(`Fecha de generación: ${new Date().toLocaleDateString()}`, 148, 28, { align: "center" });
+
+            const rows = timeSlots.map((time, tIdx) => {
+                const row = [time];
+                for(let dIdx=0; dIdx<5; dIdx++) {
+                    if(time.includes("(R)")) {
+                        row.push("RECREO");
+                    } else {
+                        let cellText = "";
+                        for (const docId in schedules) {
+                            const slotData = schedules[docId][`${tIdx}-${dIdx}`];
+                            if(slotData && slotData.grade.trim().toUpperCase() === gradoSeleccionado) {
+                                const docData = docentes.find(d => d.id === docId);
+                                cellText = `${slotData.subject}\n(${docData ? docData.name : ''})`;
+                                break;
+                            }
+                        }
+                        row.push(cellText);
+                    }
+                }
+                return row;
+            });
+
+            pdf.autoTable({
+                head: [['HORA', 'LUNES', 'MARTES', 'MIÉRCOLES', 'JUEVES', 'VIERNES']],
+                body: rows,
+                startY: 35,
+                theme: 'grid',
+                headStyles: { fillColor: [15, 23, 42], halign: 'center' },
+                styles: { halign: 'center', valign: 'middle', fontSize: 8 },
+                columnStyles: { 0: { fontStyle: 'bold', fillColor: [248, 250, 252] } }
+            });
+
+            pdf.save(`Horario_Grado_${gradoSeleccionado}_${new Date().toLocaleDateString()}.pdf`);
+        }
+        
         window.onload = () => { renderDocentes(); renderAsignaturas(); };
     </script>
 </body>
