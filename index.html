@@ -155,6 +155,7 @@
                         <select id="select-docente-horario" onchange="updateScheduleView()" class="p-2 border rounded-lg text-sm bg-slate-50 outline-none">
                             <option value="">-- Seleccionar Docente --</option>
                         </select>
+                        <button onclick="autoGenerateSchedules()" class="bg-blue-600 text-white p-3 rounded-xl font-bold">Generar Todos los Horarios Automáticamente</button>
                         <button onclick="downloadPDF()" class="bg-red-600 text-white px-4 py-2 rounded-lg font-bold text-sm hover:bg-red-700 shadow-md">
                             <i class="fas fa-file-pdf mr-2"></i> Descargar PDF
                         </button>
@@ -237,10 +238,106 @@
             document.getElementById(id).classList.add('active');
             const main = document.querySelector('.content');
             main.style.alignItems = (id === 'inicio' || id === 'configuracion') ? 'center' : 'flex-start';
+            
             if(id === 'docentes') renderDocentes();
             if(id === 'asignaturas') renderAsignaturas();
             if(id === 'horarios-docente') { populateDocenteSelect(); }
             if(id === 'horarios-grado') { populateGradoSelect(); }
+        }
+
+        // --- ALGORITMO DE AUTO-GENERACIÓN INTELIGENTE (SIN CRUCES) ---
+        function autoGenerateSchedules() {
+            if (docentes.length === 0) return alert("Por favor, registre docentes y su carga académica primero.");
+            if (!confirm("¿Está seguro de generar los horarios automáticamente? Esto sobrescribirá la distribución actual.")) return;
+
+            // Inicializar la estructura vacía para todos los docentes
+            let localSchedules = {};
+            docentes.forEach(d => { localSchedules[d.id] = {}; });
+
+            // Clonar la carga académica de los docentes para ir restando horas a medida que se asignan
+            let pendientes = [];
+            docentes.forEach(d => {
+                d.carga.forEach(c => {
+                    const asigGlobal = asignaturas.find(a => a.name.toLowerCase() === c.subject.toLowerCase() && a.grade.toLowerCase() === c.grade.toLowerCase());
+                    const esBloque = asigGlobal && asigGlobal.block === "Si";
+                    pendientes.push({
+                        docId: d.id,
+                        subject: c.subject,
+                        grade: c.grade.trim().toUpperCase(),
+                        horasRestantes: parseInt(c.hours),
+                        esBloque: esBloque
+                    });
+                });
+            });
+
+            // Ordenar por prioridad: primero los bloques (ocupan más espacio contiguo), luego horas normales
+            pendientes.sort((a, b) => (b.esBloque ? 1 : 0) - (a.esBloque ? 1 : 0));
+
+            // Recorrer cada franja horaria (tIdx) y cada día de la semana (dIdx)
+            for (let tIdx = 0; tIdx < timeSlots.length; tIdx++) {
+                if (timeSlots[tIdx].includes("(R)")) continue; // Saltar el Recreo
+
+                for (let dIdx = 0; dIdx < 5; dIdx++) {
+                    
+                    // Buscar asignaturas que falten por ubicar en este slot específico
+                    for (let i = 0; i < pendientes.length; i++) {
+                        let p = pendientes[i];
+                        if (p.horasRestantes <= 0) continue;
+
+                        // Verificar si es bloque y requiere una hora extra contigua
+                        let esBloqueValido = false;
+                        let nxtIdx = tIdx + 1;
+                        if (p.esBloque) {
+                            if (timeSlots[nxtIdx] && timeSlots[nxtIdx].includes("(R)")) nxtIdx++;
+                            if (nxtIdx < timeSlots.length && p.horasRestantes >= 2) {
+                                esBloqueValido = true;
+                            }
+                        }
+
+                        // RESTRICCIÓN 1: ¿El docente ya está dando clase en esta hora a otro grado?
+                        let docenteOcupado = localSchedules[p.docId][`${tIdx}-${dIdx}`] || 
+                                             (esBloqueValido && localSchedules[p.docId][`${nxtIdx}-${dIdx}`]);
+
+                        // RESTRICCIÓN 2: ¿El GRADO ya tiene otra clase asignada en esta misma hora por otro docente?
+                        let gradoOcupado = false;
+                        for (let dKey in localSchedules) {
+                            if (localSchedules[dKey][`${tIdx}-${dIdx}`] && localSchedules[dKey][`${tIdx}-${dIdx}`].grade === p.grade) {
+                                gradoOcupado = true;
+                            }
+                            if (esBloqueValido && localSchedules[dKey][`${nxtIdx}-${dIdx}`] && localSchedules[dKey][`${nxtIdx}-${dIdx}`].grade === p.grade) {
+                                gradoOcupado = true;
+                            }
+                        }
+
+                        // Si el docente está libre y el grado no tiene clase, asignamos
+                        if (!docenteOcupado && !gradoOcupado) {
+                            if (esBloqueValido) {
+                                localSchedules[p.docId][`${tIdx}-${dIdx}`] = { subject: p.subject, grade: p.grade };
+                                localSchedules[p.docId][`${nxtIdx}-${dIdx}`] = { subject: p.subject, grade: p.grade };
+                                p.horasRestantes -= 2;
+                            } else {
+                                localSchedules[p.docId][`${tIdx}-${dIdx}`] = { subject: p.subject, grade: p.grade };
+                                p.horasRestantes -= 1;
+                            }
+                            break; // Pasar al siguiente bloque de tiempo del día para balancear la carga
+                        }
+                    }
+                }
+            }
+
+            // Guardar resultados e informar al usuario si quedaron horas sin poder acomodarse
+            schedules = localSchedules;
+            localStorage.setItem('sanMiguelSchedules', JSON.stringify(schedules));
+            
+            let sinAsignar = pendientes.filter(p => p.horasRestantes > 0);
+            if(sinAsignar.length > 0) {
+                alert("Horarios generados. Nota: Algunas horas no pudieron asignarse por colisiones críticas de espacio físico/tiempo en el plan de estudios.");
+            } else {
+                alert("¡Horario completo generado con éxito en su totalidad y sin ningún cruce de docentes!");
+            }
+            
+            if(document.getElementById('select-docente-horario')) generateScheduleGrid();
+            if(document.getElementById('select-grado-horario')) generateGradoScheduleGrid();
         }
 
         // --- DOCENTES ---
@@ -395,53 +492,46 @@
             if(confirm("¿Eliminar?")) { asignaturas.splice(index, 1); localStorage.setItem('sanMiguelAsignaturas', JSON.stringify(asignaturas)); renderAsignaturas(); }
         }
 
-        // --- HORARIOS ---
+        // --- HORARIOS POR DOCENTE ---
         function populateDocenteSelect() {
-    const select = document.getElementById('select-docente-horario');
-    select.innerHTML = '<option value="">-- Seleccionar Docente --</option>' + docentes.map(d => `<option value="${d.id}">${d.name}</option>`).join('');
-    updateScheduleView();  // Para cargar horario al cargar opciones o cambiar selección
-}
+            const select = document.getElementById('select-docente-horario');
+            if(!select) return;
+            select.innerHTML = '<option value="">-- Seleccionar Docente --</option>' + docentes.map(d => `<option value="${d.id}">${d.name}</option>`).join('');
+            generateScheduleGrid();
+        }
+
         function generateScheduleGrid() {
             const container = document.getElementById('schedule-container');
             if(!container) return;
-            
-            // Guardamos los encabezados para volver a agregarlos después de limpiar
             const headers = Array.from(container.children).slice(0, 6);
             container.innerHTML = '';
-            // Restauramos encabezados
             headers.forEach(h => container.appendChild(h));
             
             const docId = document.getElementById('select-docente-horario').value;
-
+            
             timeSlots.forEach((time, tIdx) => {
-                // Columna de Hora
                 const timeCell = document.createElement('div');
                 timeCell.className = 'time-slot';
                 timeCell.innerText = time;
                 container.appendChild(timeCell);
 
-                // Si es recreo
                 if (time.includes("(R)")) {
                     const breakCell = document.createElement('div');
                     breakCell.className = 'class-slot break';
-                    breakCell.style.gridColumn = 'span 5'; 
+                    breakCell.style.gridColumn = 'span 5';
                     breakCell.innerText = 'Recreo';
                     container.appendChild(breakCell);
                 } else {
-                    // No es recreo: 5 celdas para los días
                     for (let dIdx = 0; dIdx < 5; dIdx++) {
                         const classCell = document.createElement('div');
                         classCell.className = 'class-slot';
                         classCell.onclick = () => assignClass(tIdx, dIdx);
 
-                        // VERIFICACIÓN SEGURA: Solo si hay docente y datos en la celda
                         if(docId && schedules[docId] && schedules[docId][`${tIdx}-${dIdx}`]) {
                             const data = schedules[docId][`${tIdx}-${dIdx}`];
-                            
-                            // Validar bloque de forma segura evitando errores si no existe la asignatura
                             const asigGlobal = asignaturas.find(a => a.name.toLowerCase() === data.subject.toLowerCase() && a.grade.toLowerCase() === data.grade.toLowerCase());
                             const esBloque = asigGlobal && asigGlobal.block === "Si";
-                            
+
                             classCell.innerHTML = `
                                 <div class="font-bold text-blue-700 uppercase text-center">${data.subject}</div>
                                 <div class="text-[0.6rem] text-slate-500 font-bold mt-1 text-center">
@@ -452,29 +542,27 @@
                                 classCell.classList.add('border-l-4', 'border-l-orange-400');
                             }
                         }
-
                         container.appendChild(classCell);
                     }
                 }
             });
         }
 
-
         function assignClass(tIdx, dIdx) {
             const docId = document.getElementById('select-docente-horario').value;
             if(!docId) return alert("Primero selecciona un docente.");
             const doc = docentes.find(d => d.id === docId);
-            if(doc.carga.length === 0) return alert("Este docente no tiene carga académica asignada.");
+            if(!doc || doc.carga.length === 0) return alert("Este docente no tiene carga académica asignada.");
             
             let options = doc.carga.map((c, i) => {
-                // Buscamos en el array global de asignaturas si es bloque
                 const asigGlobal = asignaturas.find(a => a.name.toLowerCase() === c.subject.toLowerCase() && a.grade.toLowerCase() === c.grade.toLowerCase());
                 const esBloque = asigGlobal && asigGlobal.block === "Si" ? " [BLOQUE]" : "";
                 return `${i+1}. ${c.subject} (${c.grade})${esBloque}`;
             }).join('\n');
             
             let choice = prompt(`Asignar materia para este hueco:\n0. Borrar celda actual\n${options}`);
-            
+            if(choice === null) return;
+
             if(choice === "0") {
                 if(!schedules[docId]) return;
                 delete schedules[docId][`${tIdx}-${dIdx}`];
@@ -486,40 +574,19 @@
             const idx = parseInt(choice) - 1;
             if(idx >= 0 && idx < doc.carga.length) {
                 const cargaSeleccionada = doc.carga[idx];
-                
-                // Verificar si la materia requiere Bloque
                 const asigGlobal = asignaturas.find(a => a.name.toLowerCase() === cargaSeleccionada.subject.toLowerCase() && a.grade.toLowerCase() === cargaSeleccionada.grade.toLowerCase());
                 const esBloque = asigGlobal && asigGlobal.block === "Si";
 
                 if(!schedules[docId]) schedules[docId] = {};
 
                 if(esBloque) {
-                    // El bloque requiere la hora actual y la siguiente
                     let nxtIdx = tIdx + 1;
+                    if(timeSlots[nxtIdx] && timeSlots[nxtIdx].includes("(R)")) { nxtIdx++; }
+                    if(nxtIdx >= timeSlots.length) return alert("No hay espacio suficiente para un bloque de 2 horas.");
                     
-                    // Si la hora siguiente es el recreo, saltamos al bloque posterior al recreo
-                    if(timeSlots[nxtIdx] && timeSlots[nxtIdx].includes("(R)")) {
-                        nxtIdx++;
-                    }
-
-                    // Validar que no se salga del horario escolar disponible
-                    if(nxtIdx >= timeSlots.length) {
-                        return alert("No hay suficiente espacio al final del día para ubicar un bloque de 2 horas.");
-                    }
-
-                    // Validar si la celda de destino del bloque ya está ocupada
-                    if(schedules[docId][`${nxtIdx}-${dIdx}`]) {
-                        if(!confirm("La segunda hora del bloque está ocupada por otra clase. ¿Deseas sobrescribirla?")) {
-                            return;
-                        }
-                    }
-
-                    // Asignar ambas horas consecutivas
                     schedules[docId][`${tIdx}-${dIdx}`] = cargaSeleccionada;
-                    schedules[docId][`${nxtIdx}-${dIdx}`] = cargaSeleccionada;
-                    alert(`Bloque asignado con éxito en las horas consecutivas seleccionadas.`);
+                    schedules[docId][nxtIdx + '-' + dIdx] = cargaSeleccionada;
                 } else {
-                    // Asignación normal de una sola hora académica
                     schedules[docId][`${tIdx}-${dIdx}`] = cargaSeleccionada;
                 }
                 
@@ -571,27 +638,18 @@
             pdf.save(`Horario_${docData.name}_${new Date().toLocaleDateString()}.pdf`);
         }
 
-        function resetSystem() {
-            if(confirm("¿Borrar todo?")) { localStorage.clear(); location.reload(); }
-        }
-
-// --- HORARIOS POR GRADO (LOGICA COMPLETA) ---
+        // --- HORARIOS POR GRADO ---
         function populateGradoSelect() {
             const select = document.getElementById('select-grado-horario');
             if(!select) return;
-            
-            // Obtener lista única de grados desde las asignaturas registradas
             const gradosUnicos = [...new Set(asignaturas.map(a => a.grade.trim().toUpperCase()))].sort();
-            
-            select.innerHTML = '<option value="">-- Seleccionar Grado --</option>' + 
-                               gradosUnicos.map(g => `<option value="${g}">${g}</option>`).join('');
-            updateGradoScheduleView();
+            select.innerHTML = '<option value="">-- Seleccionar Grado --</option>' + gradosUnicos.map(g => `<option value="${g}">${g}</option>`).join('');
+            generateGradoScheduleGrid();
         }
 
         function generateGradoScheduleGrid() {
             const container = document.getElementById('grado-schedule-container');
             if(!container) return;
-            
             const headers = Array.from(container.children).slice(0, 6);
             container.innerHTML = '';
             headers.forEach(h => container.appendChild(h));
@@ -624,12 +682,11 @@
                                 if(slotData && slotData.grade.trim().toUpperCase() === gradoSeleccionado) {
                                     asignaturaEncontrada = slotData;
                                     docenteEncontrado = docentes.find(d => d.id === docId);
-                                    break; // Ya encontramos la clase de este grado en esta hora
+                                    break;
                                 }
                             }
                         }
 
-                        // Si se encontró una clase asignada a este curso
                         if(asignaturaEncontrada && docenteEncontrado) {
                             const asigGlobal = asignaturas.find(a => a.name.toLowerCase() === asignaturaEncontrada.subject.toLowerCase() && a.grade.toLowerCase() === asignaturaEncontrada.grade.toLowerCase());
                             const esBloque = asigGlobal && asigGlobal.block === "Si";
@@ -639,21 +696,17 @@
                                 <div class="text-[0.55rem] text-slate-500 font-medium mt-1 text-center">${docenteEncontrado.name}</div>
                                 ${esBloque ? '<span class="text-orange-500 text-[9px] block text-center">◆ Bloque</span>' : ''}
                             `;
-                            
                             if(esBloque) {
                                 classCell.classList.add('border-l-4', 'border-l-orange-400');
                             }
                         }
-
                         container.appendChild(classCell);
                     }
                 }
             });
         }
 
-        function updateGradoScheduleView() {
-            generateGradoScheduleGrid();
-        }
+        function updateGradoScheduleView() { generateGradoScheduleGrid(); }
 
         function downloadGradoPDF() {
             const gradoSeleccionado = document.getElementById('select-grado-horario').value;
@@ -702,7 +755,11 @@
 
             pdf.save(`Horario_Grado_${gradoSeleccionado}_${new Date().toLocaleDateString()}.pdf`);
         }
-        
+
+        function resetSystem() {
+            if(confirm("¿Borrar todo?")) { localStorage.clear(); location.reload(); }
+        }
+
         window.onload = () => { renderDocentes(); renderAsignaturas(); };
     </script>
 </body>
