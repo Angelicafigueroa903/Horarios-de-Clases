@@ -402,45 +402,62 @@
     updateScheduleView();  // Para cargar horario al cargar opciones o cambiar selección
 }
         function generateScheduleGrid() {
-    const container = document.getElementById('schedule-container');
-    // Guardamos los encabezados para volver a agregarlos después de limpiar
-    const headers = Array.from(container.children).slice(0, 6);
-    container.innerHTML = '';
-    // Restauramos encabezados
-    headers.forEach(h => container.appendChild(h));
-    
-    timeSlots.forEach((time, tIdx) => {
-        // Columna de Hora
-        const timeCell = document.createElement('div');
-        timeCell.className = 'time-slot';
-        timeCell.innerText = time;
-        container.appendChild(timeCell);
+            const container = document.getElementById('schedule-container');
+            if(!container) return;
+            
+            // Guardamos los encabezados para volver a agregarlos después de limpiar
+            const headers = Array.from(container.children).slice(0, 6);
+            container.innerHTML = '';
+            // Restauramos encabezados
+            headers.forEach(h => container.appendChild(h));
+            
+            const docId = document.getElementById('select-docente-horario').value;
 
-        // Si es recreo (contiene "(R)"), mostramos una celda que abarca las 5 columnas (días) con texto "Recreo"
-        if (time.includes("(R)")) {
-            const breakCell = document.createElement('div');
-            breakCell.className = 'class-slot break';
-            breakCell.style.gridColumn = 'span 5'; // la celda ocupará las 5 columnas de días
-            breakCell.innerText = 'Recreo';
-            container.appendChild(breakCell);
-        } else {
-            // No es recreo: se crean 5 celdas para los días con datos o vacío
-            for (let dIdx = 0; dIdx < 5; dIdx++) {
-                const classCell = document.createElement('div');
-                classCell.className = 'class-slot';
-                classCell.onclick = () => assignClass(tIdx, dIdx);
+            timeSlots.forEach((time, tIdx) => {
+                // Columna de Hora
+                const timeCell = document.createElement('div');
+                timeCell.className = 'time-slot';
+                timeCell.innerText = time;
+                container.appendChild(timeCell);
 
-                const docId = document.getElementById('select-docente-horario').value;
-                if(docId && schedules[docId] && schedules[docId][`${tIdx}-${dIdx}`]) {
-                    const data = schedules[docId][`${tIdx}-${dIdx}`];
-                    classCell.innerHTML = `<div class="font-bold text-blue-700 uppercase">${data.subject}</div><div class="text-[0.6rem] text-slate-500 font-bold mt-1">${data.grade}</div>`;
+                // Si es recreo
+                if (time.includes("(R)")) {
+                    const breakCell = document.createElement('div');
+                    breakCell.className = 'class-slot break';
+                    breakCell.style.gridColumn = 'span 5'; 
+                    breakCell.innerText = 'Recreo';
+                    container.appendChild(breakCell);
+                } else {
+                    // No es recreo: 5 celdas para los días
+                    for (let dIdx = 0; dIdx < 5; dIdx++) {
+                        const classCell = document.createElement('div');
+                        classCell.className = 'class-slot';
+                        classCell.onclick = () => assignClass(tIdx, dIdx);
+
+                        // VERIFICACIÓN SEGURA: Solo si hay docente y datos en la celda
+                        if(docId && schedules[docId] && schedules[docId][`${tIdx}-${dIdx}`]) {
+                            const data = schedules[docId][`${tIdx}-${dIdx}`];
+                            
+                            // Validar bloque de forma segura evitando errores si no existe la asignatura
+                            const asigGlobal = asignaturas.find(a => a.name.toLowerCase() === data.subject.toLowerCase() && a.grade.toLowerCase() === data.grade.toLowerCase());
+                            const esBloque = asigGlobal && asigGlobal.block === "Si";
+                            
+                            classCell.innerHTML = `
+                                <div class="font-bold text-blue-700 uppercase text-center">${data.subject}</div>
+                                <div class="text-[0.6rem] text-slate-500 font-bold mt-1 text-center">
+                                    ${data.grade} ${esBloque ? '<span class="text-orange-500 text-[9px] block">◆ Bloque</span>' : ''}
+                                </div>
+                            `;
+                            if(esBloque) {
+                                classCell.classList.add('border-l-4', 'border-l-orange-400');
+                            }
+                        }
+
+                        container.appendChild(classCell);
+                    }
                 }
-
-                container.appendChild(classCell);
-            }
+            });
         }
-    });
-}
 
 
         function assignClass(tIdx, dIdx) {
@@ -598,7 +615,6 @@
                         const classCell = document.createElement('div');
                         classCell.className = 'class-slot';
 
-                        // Buscar si algún docente tiene asignada esta hora y día para este grado específico
                         let asignaturaEncontrada = null;
                         let docenteEncontrado = null;
 
@@ -608,16 +624,25 @@
                                 if(slotData && slotData.grade.trim().toUpperCase() === gradoSeleccionado) {
                                     asignaturaEncontrada = slotData;
                                     docenteEncontrado = docentes.find(d => d.id === docId);
-                                    break;
+                                    break; // Ya encontramos la clase de este grado en esta hora
                                 }
                             }
                         }
 
+                        // Si se encontró una clase asignada a este curso
                         if(asignaturaEncontrada && docenteEncontrado) {
+                            const asigGlobal = asignaturas.find(a => a.name.toLowerCase() === asignaturaEncontrada.subject.toLowerCase() && a.grade.toLowerCase() === asignaturaEncontrada.grade.toLowerCase());
+                            const esBloque = asigGlobal && asigGlobal.block === "Si";
+
                             classCell.innerHTML = `
                                 <div class="font-bold text-blue-700 uppercase text-center">${asignaturaEncontrada.subject}</div>
                                 <div class="text-[0.55rem] text-slate-500 font-medium mt-1 text-center">${docenteEncontrado.name}</div>
+                                ${esBloque ? '<span class="text-orange-500 text-[9px] block text-center">◆ Bloque</span>' : ''}
                             `;
+                            
+                            if(esBloque) {
+                                classCell.classList.add('border-l-4', 'border-l-orange-400');
+                            }
                         }
 
                         container.appendChild(classCell);
